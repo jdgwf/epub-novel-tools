@@ -8,7 +8,7 @@ This software uses python, calibre, and pandoc..
 
 The requirements for this can be installed by:
 
-    `sudo apt-get install -y build-essential pandoc calibre calibre-bin`
+    `sudo apt-get install -y pandoc calibre calibre-bin`
 
 If you are wanting to create pdfs then you'll need to install (hard drive expensive) the latex pdf libraries:
 
@@ -18,17 +18,17 @@ If you are wanting to create pdfs then you'll need to install (hard drive expens
 Creation of a novel is simple.
 Modify the Makefile variables (lines 14-22) to suit your project. Then type
 
-    `make init`
+    `python enovel-project.py init`
 
 to create the initial project directories. The only directory processed is the ./Manuscript/ the other directories are there for your own notes and reminders :)
 
 To compile your ebooks there are various commands:
 
-* `make ebooks` - creates both .mobi and .epub versions of your ./Manucript/
-* `make html` - creates a formatted HTML file of your Manuscript
-* `make pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
-* `make wordcount` - will provide a final wordcount for your manuscript
-* `make` - shows some of the options
+* `python enovel-project.py ebooks` - creates both .mobi and .epub versions of your ./Manucript/
+* `python enovel-project.py html` - creates a formatted HTML file of your Manuscript
+* `python enovel-project.py pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
+* `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
+* `python enovel-project.py` - shows some of the options
 
 ##Editor
 Until I write my own simplified editor, I use `atom .` to open the current directory for creating and modifying directories and files. There's a few plugins that I use that's very handy for UTF-8 fancy quotes:
