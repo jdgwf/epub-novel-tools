@@ -8,11 +8,11 @@ This software uses python, calibre, and pandoc..
 
 You can install the requirements for this app with the following command:
 
-    `sudo apt-get install -y pandoc calibre calibre-bin`
+    sudo apt-get install -y pandoc calibre calibre-bin
 
 If you are wanting to create pdfs then you'll need to install (hard drive expensive) the latex pdf libraries:
 
-    `sudo apt-get install -y texlive-latex-base texlive-fonts-recommended`
+    sudo apt-get install -y texlive-latex-base texlive-fonts-recommended
 
 ##Usage
 Creation of a novel is simple.
