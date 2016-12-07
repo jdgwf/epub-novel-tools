@@ -16,6 +16,22 @@ coverImage = ""
 # Immutable Variables
 manuscriptDir = "./Manuscript"
 
+def normalizeMarkDown( fileContents ):
+    # trim the contents
+    fileContents = fileContents.strip()
+    # remove existing markdown HRs
+    fileContents = fileContents.replace( "----\n", "")
+    fileContents = fileContents.replace( "\n----", "")
+    fileContents = fileContents.replace( "---\n", "")
+    fileContents = fileContents.replace( "\n---", "")
+
+    # replace all triple newlines with double newlines (normalize any extras)
+    fileContents = fileContents.replace( "\n\n\n", "\n\n")
+
+
+
+    return fileContents
+
 def preProcess(writeFile = False):
     #global manuscriptDir
     manuscriptContents = ""
@@ -26,20 +42,9 @@ def preProcess(writeFile = False):
                 # get file contents
                 fileContents = content_file.read()
 
-                # trim the contents
-                fileContents = fileContents.strip()
-                # remove existing markdown HRs
-                fileContents = fileContents.replace( "----\n", "")
-                fileContents = fileContents.replace( "\n----", "")
-                fileContents = fileContents.replace( "---\n", "")
-                fileContents = fileContents.replace( "\n---", "")
-
-                # replace all triple newlines with double newlines (normalize any extras)
-                fileContents = fileContents.replace( "\n\n\n", "\n\n")
-
+                fileContents = normalizeMarkDown( fileContents )
                 # add an md HR at the end of the file
                 manuscriptContents += fileContents + "\n\n----\n\n"
-
         # remove final "\n\n----\n\n"
         if manuscriptContents.endswith("\n\n----\n\n"):
             manuscriptContents = manuscriptContents[:-len("\n\n----\n\n")]
@@ -143,11 +148,7 @@ def createPDF():
 
 def wordCount():
     manuscriptData = preProcess()
-    manuscriptData = manuscriptData.replace( "----\n", "")
-    manuscriptData = manuscriptData.replace( "\n----", "")
-    manuscriptData = manuscriptData.replace( "---\n", "")
-    manuscriptData = manuscriptData.replace( "\n---", "")
-    manuscriptData = manuscriptData.replace( "\\newpage", "")
+    manuscriptData = normalizeMarkDown( manuscriptData )
     print "Wordcount: " + str(len(manuscriptData.split()))
 
 if len(sys.argv) == 2:
