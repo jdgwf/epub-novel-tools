@@ -6,7 +6,7 @@ Sets up a series of directories and compilation tools for Novel E-Book creation 
 ##Requirements
 This software uses python, calibre, and pandoc..
 
-The requirements for this can be installed by:
+You can install the requirements for this app with the following command:
 
     `sudo apt-get install -y pandoc calibre calibre-bin`
 
@@ -16,7 +16,7 @@ If you are wanting to create pdfs then you'll need to install (hard drive expens
 
 ##Usage
 Creation of a novel is simple.
-Modify the Makefile variables (lines 14-22) to suit your project. Then type
+Modify the python variables (lines 5-13) to suit your project. Then type
 
     `python enovel-project.py init`
 
