@@ -41,6 +41,7 @@ To compile your ebooks there are various commands:
 * `python enovel-project.py pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
 * `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
 
+You can combine arguments as well `python enovel-project.py html pdf` will create html and pdf formats of the manuscript
 
 ##Looking to the Future
 Eventually I'd like to remove the os.system() calls and have all the document creation native Python. This will be a long, slow process *IF* I decide to go that route.

@@ -88,9 +88,10 @@ def removeTempFiles():
 def printHelp():
 	print( "Usage:" )
 	print( "	enovel-project init - create base directories and starter content - DANGER: this will overwrite your current content" )
-	print( "	enovel-project requirements - for Ubuntu users: installs calibre and pandoc" )
 	print( "	enovel-project ebooks - create .mobi and .epub from your manuscript" )
 	print( "	enovel-project pdf - creates a pdf from your manuscript" )
+	print( "	enovel-project html - creates a html from your manuscript" )
+	print( "	enovel-project text - creates a text file from your manuscript" )
 	print( "	enovel-project wordcount - gives you a current wordcount of your manuscript" )
 
 def initProject():
@@ -159,23 +160,27 @@ def wordCount():
     manuscriptData = normalizeMarkDown( manuscriptData )
     print("Wordcount: " + str(len(manuscriptData.split())))
 
-if len(sys.argv) == 2:
-    if sys.argv[1] == "init":
-        initProject()
-    elif sys.argv[1] == "ebooks":
-        createEPUB()
-        createMOBI()
-    elif sys.argv[1] == "pdf":
-        createPDF()
-    elif sys.argv[1] == "html":
-        createHTML()
-    elif sys.argv[1] == "txt":
-        createTXT()
-    elif sys.argv[1] == "text":
-        createTXT()
-    elif sys.argv[1] == "wordcount":
-        wordCount()
-    else:
-        printHelp()
+if len(sys.argv) > 1:
+	for arg in sys.argv:
+	    if arg == "init":
+	        initProject()
+	    elif arg == "ebooks":
+	        createEPUB()
+	        createMOBI()
+	    elif arg == "pdf":
+	        createPDF()
+	    elif arg == "html":
+	        createHTML()
+	    elif sys.argv[1] == "txt":
+	        createTXT()
+	    elif arg == "text":
+	        createTXT()
+	    elif arg == "wordcount":
+	        wordCount()
+	    elif arg == __file__:
+			# Do Nothing
+			pass
+	    else:
+	        printHelp()
 else:
     printHelp()
