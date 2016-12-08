@@ -37,6 +37,9 @@ To compile your ebooks there are various commands:
 * `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
 * `python enovel-project.py` - shows some of the options
 
+##Looking to the Future
+Eventually I'd like to remove the os.system() calls and have all the document creation native Python. This will be a long, slow process *IF* I decide to go that route.
+
 ##Editor
 Until I write my own simplified editor, I use `atom .` to open the current directory for creating and modifying directories and files. There's a few plugins that I use that's very handy for UTF-8 fancy quotes:
 
