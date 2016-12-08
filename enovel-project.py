@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
 import sys
 
@@ -157,7 +157,7 @@ def createPDF():
 def wordCount():
     manuscriptData = preProcess()
     manuscriptData = normalizeMarkDown( manuscriptData )
-    print "Wordcount: " + str(len(manuscriptData.split()))
+    print("Wordcount: " + str(len(manuscriptData.split())))
 
 if len(sys.argv) == 2:
     if sys.argv[1] == "init":
