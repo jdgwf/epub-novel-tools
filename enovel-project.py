@@ -2,15 +2,25 @@
 import os
 import sys
 
-bookName = "My Ebook"
-bookFile = "My Ebook"
-authorName = "Author Name"
-#copyRight = "Creative Commons Non-Commercial Share Alike 3.0"
-copyRight = "2016 All rights reserved"
-languageCode = "en-US"
-publisherName = "Self Published"
-# just the name of your image in the current directory, such as coverImage.png
-coverImage = ""
+import yaml
+
+
+# Initial Config - this will create a config.yml file to modify
+config = dict(
+	bookName = "My Ebook",
+	bookFile = "My Ebook",
+	authorName = "Author Name",
+	copyRight = "2016 All rights reserved",
+	languageCode = "en-US",
+	publisherName = "Self Published",
+	coverImage = ""
+)
+
+if os.path.isfile("config.yml") == False:
+	with open('config.yml', 'w') as outfile:
+		yaml.dump(config, outfile, default_flow_style=False)
+else:
+	config = yaml.safe_load(open("config.yml"))
 
 
 # Immutable Variables
@@ -60,22 +70,22 @@ def preProcess(writeFile = False):
 
 def createBookMetaData():
     fileContents = "---\n"
-    fileContents += "title: " + bookName + "\n"
-    fileContents += "author: " + authorName + "\n"
-    fileContents += "rights:  " + copyRight + "\n"
-    fileContents += "language: " + languageCode + "\n"
-    fileContents += "publisher: " + publisherName + "\n"
-    if coverImage != "":
-        fileContents += "cover-image: " + coverImage + "\n"
+    fileContents += "title: " + config["bookName"] + "\n"
+    fileContents += "author: " + config["authorName"] + "\n"
+    fileContents += "rights:  " + config["copyRight"] + "\n"
+    fileContents += "language: " + config["languageCode"] + "\n"
+    fileContents += "publisher: " + config["publisherName"] + "\n"
+    if config["coverImage"] != "":
+        fileContents += "cover-image: " + config["coverImage"] + "\n"
     fileContents += "...\n"
-    with open("./" + "00-" + bookFile + "-info.txt" , 'w') as metaFile:
+    with open("./" + "00-" + config["bookFile"] + "-info.txt" , 'w') as metaFile:
         metaFile.write( fileContents )
 
 def removeTempFiles():
     if os.path.isfile("./temp_work_file.md"):
         os.remove( "./temp_work_file.md" )
-    if os.path.isfile("./" + "00-" + bookFile + "-info.txt"):
-        os.remove( "./" + "00-" + bookFile + "-info.txt" )
+    if os.path.isfile("./" + "00-" + config["bookFile"] + "-info.txt"):
+        os.remove( "./" + "00-" + config["bookFile"] + "-info.txt" )
 
 def printHelp():
 	print( "Usage:" )
@@ -115,35 +125,35 @@ def createEPUB():
     #Requires SYSCALL to pandoc
     createBookMetaData()
     preProcess( writeFile = True )
-    os.system("pandoc -S -o \"" + bookFile + ".epub\" \"00-" + bookFile + "-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -S -o \"" + config["bookFile"] + ".epub\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
     removeTempFiles()
 
 def createTXT():
     #Requires SYSCALL to pandoc
     createEPUB()
-    os.system("pandoc -t plain \"" + bookFile + ".epub\" -o \"" + bookFile + ".txt\"")
+    os.system("pandoc -t plain \"" + config["bookFile"] + ".epub\" -o \"" + config["bookFile"] + ".txt\"")
 
 def createHTML():
     #Requires SYSCALL to pandoc
     createBookMetaData()
     preProcess( writeFile = True )
-    os.system("pandoc -s -S -o \"" + bookFile + ".html\" \"00-" + bookFile + "-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -s -S -o \"" + config["bookFile"] + ".html\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
     removeTempFiles()
 
 def createMOBI():
     #Requires SYSCALL to pandoc
     #Requires SYSCALL to calibre tools
     createEPUB()
-    os.system("ebook-convert \"" + bookFile + ".epub\" \"" + bookFile + ".mobi\" > \"" + bookFile + ".convert.log\"")
-    if os.path.isfile( bookFile + ".convert.log" ):
-        os.remove( bookFile + ".convert.log" )
+    os.system("ebook-convert \"" + config["bookFile"] + ".epub\" \"" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
+    if os.path.isfile( config["bookFile"] + ".convert.log" ):
+        os.remove( config["bookFile"] + ".convert.log" )
 
 
 def createPDF():
     #Requires SYSCALL to pandoc
     createBookMetaData()
     preProcess( writeFile = True )
-    os.system("pandoc -S -o \"" + bookFile + ".pdf\" \"00-" + bookFile + "-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -S -o \"" + config["bookFile"] + ".pdf\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
     removeTempFiles()
 
 def wordCount():
