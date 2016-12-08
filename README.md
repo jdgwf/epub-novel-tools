@@ -3,6 +3,9 @@
 ##Description
 Sets up a series of directories and compilation tools for Novel E-Book creation on Ubuntu Linux (tested on 16.04).
 
+##Ubuntu on Windows 10
+This **almost** works in Windows 10's Windows Subsystem for Linux. There's an issue with the POSIX timer that's been fixed in the next release when trying to run pandoc. I'll see how it goes and keep this section updated.
+
 ##Requirements
 This software uses python, calibre, and pandoc..
 

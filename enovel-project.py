@@ -4,7 +4,6 @@ import sys
 
 import yaml
 
-
 # Initial Config - this will create a config.yml file to modify
 config = dict(
 	bookName = "My Ebook",
@@ -21,7 +20,6 @@ if os.path.isfile("config.yml") == False:
 		yaml.dump(config, outfile, default_flow_style=False)
 else:
 	config = yaml.safe_load(open("config.yml"))
-
 
 # Immutable Variables
 manuscriptDir = "./Manuscript"
