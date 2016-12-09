@@ -6,6 +6,7 @@ import yaml
 
 
 exportDirectory = "Exports"
+recreateEPUBAndTempFiles = True
 
 # Initial Config - this will create a config.yml file to modify
 config = dict(
@@ -73,17 +74,20 @@ def preProcess(writeFile = False):
 	return manuscriptContents
 
 def createBookMetaData():
-	fileContents = "---\n"
-	fileContents += "title: " + config["bookName"] + "\n"
-	fileContents += "author: " + config["authorName"] + "\n"
-	fileContents += "rights:  " + config["copyRight"] + "\n"
-	fileContents += "language: " + config["languageCode"] + "\n"
-	fileContents += "publisher: " + config["publisherName"] + "\n"
-	if config["coverImage"] != "":
-		fileContents += "cover-image: " + config["coverImage"] + "\n"
-	fileContents += "...\n"
-	with open("./" + "00-" + config["bookFile"] + "-info.txt" , 'w') as metaFile:
-		metaFile.write( fileContents )
+	global recreateEPUBAndTempFiles
+	if recreateEPUBAndTempFiles == True:
+		# print("DEBUG createBookMetaData()")
+		fileContents = "---\n"
+		fileContents += "title: " + config["bookName"] + "\n"
+		fileContents += "author: " + config["authorName"] + "\n"
+		fileContents += "rights:  " + config["copyRight"] + "\n"
+		fileContents += "language: " + config["languageCode"] + "\n"
+		fileContents += "publisher: " + config["publisherName"] + "\n"
+		if config["coverImage"] != "":
+			fileContents += "cover-image: " + config["coverImage"] + "\n"
+		fileContents += "...\n"
+		with open("./" + "00-" + config["bookFile"] + "-info.txt" , 'w') as metaFile:
+			metaFile.write( fileContents )
 
 def removeTempFiles():
 	if os.path.isfile("./temp_work_file.md"):
@@ -129,28 +133,34 @@ def initProject():
 		os.mkdir( "./" + exportDirectory )
 
 def createEPUB():
+	global recreateEPUBAndTempFiles
 	#Requires SYSCALL to pandoc
-	createBookMetaData()
-	preProcess( writeFile = True )
-	os.system("pandoc -S -o './" + exportDirectory + "/" + config["bookFile"] + ".epub' '00-" + config["bookFile"] + "-info.txt' 'temp_work_file.md'")
-	removeTempFiles()
+	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
+		# print("DEBUG createEPUB()")
+		createBookMetaData()
+		preProcess( writeFile = True )
+		os.system("pandoc -S -o './" + exportDirectory + "/" + config["bookFile"] + ".epub' '00-" + config["bookFile"] + "-info.txt' 'temp_work_file.md'")
+		recreateEPUBAndTempFiles = False
+
 
 def createTXT():
 	#Requires SYSCALL to pandoc
-	createEPUB()
+	# print("DEBUG createTXT()")
 	os.system("pandoc -t plain \"./" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"./" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
 
 def createHTML():
 	#Requires SYSCALL to pandoc
 	createBookMetaData()
+	# print("DEBUG createHTML()")
 	preProcess( writeFile = True )
 	os.system("pandoc -s -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
-	removeTempFiles()
+
 
 def createMOBI():
 	#Requires SYSCALL to pandoc
 	#Requires SYSCALL to calibre tools
 	createEPUB()
+	# print("DEBUG createMOBI()")
 	os.system("ebook-convert \"./" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"./" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
 	if os.path.isfile( config["bookFile"] + ".convert.log" ):
 		os.remove( config["bookFile"] + ".convert.log" )
@@ -159,9 +169,10 @@ def createMOBI():
 def createPDF():
 	#Requires SYSCALL to pandoc
 	createBookMetaData()
+	# print("DEBUG createPDF()")
 	preProcess( writeFile = True )
 	os.system("pandoc -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
-	removeTempFiles()
+
 
 def wordCount():
 	manuscriptData = preProcess()
@@ -190,5 +201,6 @@ if len(sys.argv) > 1:
 			pass
 		else:
 			printHelp()
+	removeTempFiles()
 else:
 	printHelp()

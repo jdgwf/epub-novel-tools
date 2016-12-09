@@ -24,11 +24,11 @@ If want to create pdfs then you'll need to install the latex pdf libraries (inst
 #Fedora 25
 You can install the requirements for this app with the following command (install size: ~365mb, this does include the full calibre e-book reader for your convienience):
 
-    sudo yum install -y pandoc calibre python3-yaml
+    sudo yum -y install -y pandoc calibre python3-yaml
 
-If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~105mb):
+If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~255mb):
 
-    yum install texlive
+    sudo yum -y install texlive
 
 This should work in CentOS, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
 
