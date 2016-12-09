@@ -1,7 +1,7 @@
 #E-Novel project
 
 ##Description
-Sets up a series of directories and compilation tools for Novel E-Book creation on Ubuntu Linux (tested on 16.04).
+Sets up a series of directories and MarkDown compilation tools for Novel E-Book novel creation on Linux (tested on Ubuntu 16.04 and 16.10, should work on and Debian too).
 
 ##Ubuntu on Windows 10
 This **almost** works in Windows 10's Windows Subsystem for Linux. There's an issue with the POSIX timer that's been fixed in the next Windows 10 release when trying to run pandoc. I'll see how it goes and keep this section updated.
@@ -9,8 +9,9 @@ This **almost** works in Windows 10's Windows Subsystem for Linux. There's an is
 Reference: <https://github.com/Microsoft/BashOnWindows/issues/307>
 
 ##Requirements
-This software uses python, calibre, and pandoc..
+This software uses python3, calibre, and pandoc..
 
+###Ubuntu 16.04 && 16.10 (Tested and Verified)
 You can install the requirements for this app with the following command (install size: ~223mb, this does include the full calibre e-book reader for your convienience):
 
     sudo apt-get install -y pandoc calibre calibre-bin
@@ -18,6 +19,18 @@ You can install the requirements for this app with the following command (instal
 If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~282mb):
 
     sudo apt-get install -y texlive-latex-base texlive-fonts-recommended
+
+
+#Fedora 25
+You can install the requirements for this app with the following command (install size: ~365mb, this does include the full calibre e-book reader for your convienience):
+
+    sudo yum install -y pandoc calibre python3-yaml
+
+If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~105mb):
+
+    yum install texlive
+
+This should work in CentOS, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
 
 ##Usage
 Creation of a novel is simple.
