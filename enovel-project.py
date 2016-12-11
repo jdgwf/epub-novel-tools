@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
-
+from glob import glob
 import yaml
 
 
@@ -94,6 +94,9 @@ def removeTempFiles():
 		os.remove( "./temp_work_file.md" )
 	if os.path.isfile("./" + "00-ebook-info.txt"):
 		os.remove( "./" + "00-ebook-info.txt" )
+	tmpPDFConv = glob("tex2pdf.*")
+	for tmpDir in tmpPDFConv:
+		os.rmdir( tmpDir )
 
 def printHelp():
 	print( "Usage:" )
