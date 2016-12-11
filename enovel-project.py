@@ -86,14 +86,14 @@ def createBookMetaData():
 		if config["coverImage"] != "":
 			fileContents += "cover-image: " + config["coverImage"] + "\n"
 		fileContents += "...\n"
-		with open("./" + "00-" + config["bookFile"] + "-info.txt" , 'w', encoding="utf8") as metaFile:
+		with open("./" + "00-ebook-info.txt" , 'w', encoding="utf8") as metaFile:
 			metaFile.write( fileContents )
 
 def removeTempFiles():
 	if os.path.isfile("./temp_work_file.md"):
 		os.remove( "./temp_work_file.md" )
-	if os.path.isfile("./" + "00-" + config["bookFile"] + "-info.txt"):
-		os.remove( "./" + "00-" + config["bookFile"] + "-info.txt" )
+	if os.path.isfile("./" + "00-ebook-info.txt"):
+		os.remove( "./" + "00-ebook-info.txt" )
 
 def printHelp():
 	print( "Usage:" )
@@ -134,12 +134,13 @@ def initProject():
 
 def createEPUB():
 	global recreateEPUBAndTempFiles
+
 	#Requires SYSCALL to pandoc
 	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
 		# print("DEBUG createEPUB()")
 		createBookMetaData()
 		preProcess( writeFile = True )
-		os.system("pandoc -S -o './" + exportDirectory + "/" + config["bookFile"] + ".epub' '00-" + config["bookFile"] + "-info.txt' 'temp_work_file.md'")
+		os.system("pandoc -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 		recreateEPUBAndTempFiles = False
 
 
@@ -153,7 +154,7 @@ def createHTML():
 	createBookMetaData()
 	# print("DEBUG createHTML()")
 	preProcess( writeFile = True )
-	os.system("pandoc -s -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
+	os.system("pandoc -s -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 
 
 def createMOBI():
@@ -171,7 +172,7 @@ def createPDF():
 	createBookMetaData()
 	# print("DEBUG createPDF()")
 	preProcess( writeFile = True )
-	os.system("pandoc -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-" + config["bookFile"] + "-info.txt\" \"temp_work_file.md\"")
+	os.system("pandoc -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 
 
 def wordCount():
