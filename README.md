@@ -32,6 +32,16 @@ If want to create pdfs then you'll need to install the latex pdf libraries (inst
 
 This should work in CentOS, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
 
+#Windows (Native, tested in Windows 10)
+Install Python 3 for Windows (don't forget to add the 'add python to path variable' in the install options ) <https://www.python.org/downloads/windows/>
+
+Install tye pyyaml package via pip (needed for reading config files)
+
+Install pandoc for Windows including the suggested MiKTeX package <http://www.pandoc.org/installing.html>
+
+Install Calibre for Windows: <http://calibre-ebook.com/download_windows> for ebook-convert
+
+
 ##Usage
 Creation of a novel is simple.
 Type:

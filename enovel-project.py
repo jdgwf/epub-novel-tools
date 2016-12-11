@@ -20,10 +20,10 @@ config = dict(
 )
 
 if os.path.isfile("config.yml") == False:
-	with open('config.yml', 'w') as outfile:
+	with open('config.yml', 'w', encoding="utf8") as outfile:
 		yaml.dump(config, outfile, default_flow_style=False)
 else:
-	config = yaml.safe_load(open("config.yml"))
+	config = yaml.safe_load(open("config.yml", encoding="utf8"))
 
 # Immutable Variables
 manuscriptDir = "./Manuscript"
@@ -53,7 +53,7 @@ def preProcess(writeFile = False):
 	for root, dirs, files in sorted(os.walk( manuscriptDir )):
 		path = root.split('/')
 		for file in sorted(files):
-			with open(manuscriptDir + "/" + os.path.basename(root) + "/" + file , 'r') as content_file:
+			with open(manuscriptDir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
 				# get file contents
 				fileContents = content_file.read()
 
@@ -68,7 +68,7 @@ def preProcess(writeFile = False):
 
 	# save contents
 	if writeFile:
-		with open("./temp_work_file.md" , 'w') as working_file:
+		with open("./temp_work_file.md" , 'w', encoding="utf8") as working_file:
 			working_file.write( manuscriptContents )
 
 	return manuscriptContents
@@ -86,7 +86,7 @@ def createBookMetaData():
 		if config["coverImage"] != "":
 			fileContents += "cover-image: " + config["coverImage"] + "\n"
 		fileContents += "...\n"
-		with open("./" + "00-" + config["bookFile"] + "-info.txt" , 'w') as metaFile:
+		with open("./" + "00-" + config["bookFile"] + "-info.txt" , 'w', encoding="utf8") as metaFile:
 			metaFile.write( fileContents )
 
 def removeTempFiles():
@@ -113,14 +113,14 @@ def initProject():
 	chapterHeading = "\\\\newpage\n\n"
 	chapterHeading += "#Chapter 1 - Your first Chapter\n\n"
 	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md") == False:
-		with open("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md" , 'w') as chapterHeaderFile:
+		with open("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
 			chapterHeaderFile.write( chapterHeading )
 
 	firstScene = "Your book starts here!\n\n"
 	firstScene += "Your second paragraph\n"
 
 	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md") == False:
-		with open("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md" , 'w') as firstSceneFile:
+		with open("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
 			firstSceneFile.write( firstScene )
 
 	if os.path.isdir("./Bios") == False:
