@@ -135,6 +135,16 @@ def initProject():
 	if os.path.isdir("./" + exportDirectory) == False:
 		os.mkdir( "./" + exportDirectory )
 
+	exampleCharacter = "#New Character Name\n\n##Role\n\nCharacter's role in the story\n\n##Description\n\nPhysical and mental description of the character."
+	if os.path.isfile("./Bios/Example Character.md") == False:
+		with open("./Bios/Example Character.md" , 'w', encoding="utf8") as exampleBioFile:
+			exampleBioFile.write( exampleCharacter )
+
+	exampleScene = "#New Location Name\n\n##Role\n\nScene's's role in the story\n\n##Description\n\nPhysical and mental description of the scene."
+	if os.path.isfile("./Scenes/Example Scene.md") == False:
+		with open("./Scenes/Example Scene.md" , 'w', encoding="utf8") as exampleSceneFile:
+			exampleSceneFile.write( exampleScene )
+
 def createEPUB():
 	global recreateEPUBAndTempFiles
 
