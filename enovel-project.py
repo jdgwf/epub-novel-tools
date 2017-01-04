@@ -13,7 +13,7 @@ exportDirectory = "./Exports"
 manuscriptDir = "./Manuscript"
 progressDirectory = "./Progress"
 recreateEPUBAndTempFiles = True
-
+todaysProgress = 0
 
 # Initial Config - this will create a config.yml file to modify
 config = dict(
@@ -67,7 +67,6 @@ def normalizeMarkDown( fileContents ):
 def preProcess(writeFile = False):
 	if os.path.isdir(exportDirectory) == False:
 		os.mkdir( exportDirectory )
-	#global manuscriptDir
 	manuscriptContents = ""
 	for root, dirs, files in sorted(os.walk( manuscriptDir )):
 		path = root.split('/')
@@ -93,7 +92,6 @@ def preProcess(writeFile = False):
 	return manuscriptContents
 
 def createBookMetaData():
-	global recreateEPUBAndTempFiles
 	if recreateEPUBAndTempFiles == True:
 		# print("DEBUG createBookMetaData()")
 		fileContents = "---\n"
@@ -118,6 +116,7 @@ def removeTempFiles():
 		os.rmdir( tmpDir )
 
 def saveProgress():
+	global todaysProgress
 	if os.path.isdir( progressDirectory ) == False:
 		os.mkdir( progressDirectory )
 	manuscriptData = preProcess()
@@ -133,11 +132,18 @@ def saveProgress():
 
 	wordCountDict[ str( datetime.date.today())] = currentWordCount
 
+	lastCount = 0
+	for entryDate in sorted(wordCountDict.keys()):
+		if str(datetime.date.today()) == entryDate:
+			todaysProgress = int(wordCountDict[ entryDate ]) - lastCount
+		lastCount = int(wordCountDict[ entryDate ])
+
 	with open( progressDirectory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
 		for entryDate in sorted(wordCountDict.keys()):
 			content_file.write( str(entryDate) + "\t" + str(wordCountDict[entryDate]) + "\n")
 
 	if foundMatPlotLib:
+
 		#Create Overall Progress Graph
 		graphX = []
 		graphY = []
@@ -148,18 +154,29 @@ def saveProgress():
 
 		overallGraphNumCols = len(graphX)
 		overallGraphLocations = np.arange(overallGraphNumCols)  # the x locations for the groups
-		overallGraphBarWidth = 0.35       # the width of the bars
+		overallGraphBarWidth = 0.37       # the width of the bars
 
 		overallGraphFig, overallGraphAX = plt.subplots()
+		figureWidth = (len(graphX) / 10 * 3)
+		if figureWidth < 10:
+			figureWidth = 10
+		overallGraphFig.set_size_inches(figureWidth, 5)
+
 		rects1 = overallGraphAX.bar(overallGraphLocations, graphY, overallGraphBarWidth, color='r')
 
 		# add some text for labels, title and axes ticks
 		overallGraphAX.set_ylabel('Word Count')
 		overallGraphAX.set_title('Overall Word Count Progress for "' + config["bookName"] + '"' )
 		overallGraphAX.set_xticks(overallGraphLocations + overallGraphBarWidth)
-		overallGraphAX.set_xticklabels(graphX, rotation=90 )
+		overallGraphAX.set_xticklabels(graphX,  ha='center', rotation=90 )
 
-		plt.savefig(progressDirectory + "/progress-overall.png", bbox_inches='tight')
+		overallGraphRects = overallGraphAX.patches
+
+		for overallRect, overallLabel in zip(overallGraphRects, graphY):
+		    labelHeight = overallRect.get_height()
+		    overallGraphAX.text(overallRect.get_x() + overallRect.get_width()/2, labelHeight + 10, overallLabel, ha='center', va='bottom', rotation=90 )
+
+		plt.savefig(progressDirectory + "/progress-overall.png", bbox_inches='tight', dpi=300)
 
 		overallGraphFig.clf()
 		plt.clf()
@@ -167,6 +184,8 @@ def saveProgress():
 		#Create Daily Progress Graph
 		graphX = []
 		graphY = []
+
+
 
 		lastCount = 0
 		for entryDate in sorted(wordCountDict.keys()):
@@ -176,18 +195,30 @@ def saveProgress():
 
 		dailyGraphNumCols = len(graphX)
 		dailyGraphLocations = np.arange(dailyGraphNumCols)  # the x locations for the groups
-		dailyGraphWidth = 0.35       # the width of the bars
+		dailyGraphWidth = 0.38 # the width of the bars
 
 		dailyGraphFig, dailyGraphAX = plt.subplots()
 		rects1 = dailyGraphAX.bar(dailyGraphLocations, graphY, dailyGraphWidth, color='r')
+
+		figureWidth = (len(graphX) / 10 * 3)
+		if figureWidth < 10:
+			figureWidth = 10
+		dailyGraphFig.set_size_inches( figureWidth, 5)
 
 		# add some text for labels, title and axes ticks
 		dailyGraphAX.set_ylabel('Word Count')
 		dailyGraphAX.set_title('Daily Word Count Progress for "' + config["bookName"] + '"' )
 		dailyGraphAX.set_xticks( dailyGraphLocations + dailyGraphWidth )
-		dailyGraphAX.set_xticklabels(graphX, rotation=90 )
+		dailyGraphAX.set_xticklabels(graphX,  ha='center', rotation=90 )
 
-		plt.savefig(progressDirectory + "/progress-daily.png", bbox_inches='tight')
+		dailyGraphRects = dailyGraphAX.patches
+
+		for dailyRect, dailyLabel in zip(dailyGraphRects, graphY):
+		    labelHeight = dailyRect.get_height()
+		    dailyGraphAX.text(dailyRect.get_x() + dailyRect.get_width()/2, labelHeight + 10, dailyLabel, ha='center', va='bottom', rotation=90 )
+
+
+		plt.savefig(progressDirectory + "/progress-daily.png", bbox_inches='tight', dpi=300)
 
 		dailyGraphFig.clf()
 		plt.clf()
@@ -241,7 +272,6 @@ def initProject():
 
 def createEPUB():
 	global recreateEPUBAndTempFiles
-
 	#Requires SYSCALL to pandoc
 	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
 		# print("DEBUG createEPUB()")
@@ -284,8 +314,9 @@ def createPDF():
 def wordCount():
 	manuscriptData = preProcess()
 	manuscriptData = normalizeMarkDown( manuscriptData )
-	print("Wordcount: " + str(len(manuscriptData.split())))
-
+	print("Project Wordcount: " + str(len(manuscriptData.split())))
+	print("Today's Progress: " + str(todaysProgress) )
+saveProgress()
 if len(sys.argv) > 1:
 	for arg in sys.argv:
 		if arg == "init":
@@ -309,7 +340,6 @@ if len(sys.argv) > 1:
 		else:
 			printHelp()
 	removeTempFiles()
-	saveProgress()
+
 else:
 	printHelp()
-	saveProgress()
