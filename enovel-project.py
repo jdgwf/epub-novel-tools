@@ -141,7 +141,7 @@ def saveProgress():
 		graphX = []
 		graphY = []
 
-		for entryDate in wordCountDict:
+		for entryDate in sorted(wordCountDict.keys()):
 			graphX.append(entryDate)
 			graphY.append( int(wordCountDict[ entryDate ]) )
 
@@ -156,7 +156,7 @@ def saveProgress():
 		ax.set_ylabel('Word Count')
 		ax.set_title('Word Count Progress for "' + config["bookName"] + '"' )
 		ax.set_xticks(ind + width)
-		ax.set_xticklabels(graphX)
+		ax.set_xticklabels(graphX, rotation=90 )
 
 		#ax.legend((rects1[0], rects2[0]), ('Men', 'Women'))
 
