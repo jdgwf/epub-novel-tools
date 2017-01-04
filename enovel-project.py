@@ -3,10 +3,17 @@ import os
 import sys
 from glob import glob
 import yaml
+import csv
+import datetime
+import imp
 
 
-exportDirectory = "Exports"
+
+exportDirectory = "./Exports"
+manuscriptDir = "./Manuscript"
+progressDirectory = "./Progress"
 recreateEPUBAndTempFiles = True
+
 
 # Initial Config - this will create a config.yml file to modify
 config = dict(
@@ -25,8 +32,22 @@ if os.path.isfile("config.yml") == False:
 else:
 	config = yaml.safe_load(open("config.yml", encoding="utf8"))
 
+
+
+try:
+    imp.find_module('numpy')
+    imp.find_module('matplotlib')
+    foundMatPlotLib = True
+except ImportError:
+    foundMatPlotLib = False
+
+if foundMatPlotLib:
+	print("FOUND MATPLOTLIBS")
+	import numpy as np
+	import matplotlib.pyplot as plt
+
 # Immutable Variables
-manuscriptDir = "./Manuscript"
+
 
 def normalizeMarkDown( fileContents ):
 	# trim the contents
@@ -40,14 +61,12 @@ def normalizeMarkDown( fileContents ):
 	# replace all triple newlines with double newlines (normalize any extras)
 	fileContents = fileContents.replace( "\n\n\n", "\n\n")
 
-
-
 	return fileContents
 
 
 def preProcess(writeFile = False):
-	if os.path.isdir("./" + exportDirectory) == False:
-		os.mkdir( "./" + exportDirectory )
+	if os.path.isdir(exportDirectory) == False:
+		os.mkdir( exportDirectory )
 	#global manuscriptDir
 	manuscriptContents = ""
 	for root, dirs, files in sorted(os.walk( manuscriptDir )):
@@ -98,6 +117,51 @@ def removeTempFiles():
 	for tmpDir in tmpPDFConv:
 		os.rmdir( tmpDir )
 
+def saveProgress():
+	if os.path.isdir( progressDirectory ) == False:
+		os.mkdir( progressDirectory )
+	manuscriptData = preProcess()
+	manuscriptData = normalizeMarkDown( manuscriptData )
+	currentWordCount = len(manuscriptData.split())
+	wordCountDict = {}
+	if os.path.isfile( progressDirectory + "/progress.tsv"):
+		with open( progressDirectory + "/progress.tsv" , 'r', encoding="utf8") as content_file:
+			# get file contents
+			for line in content_file:
+				entryDate, wordCount = map(str, line.strip().split('\t') )
+				wordCountDict[entryDate] = wordCount
+
+	wordCountDict[ str( datetime.date.today())] = currentWordCount
+	with open( progressDirectory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
+		for entryDate in wordCountDict:
+			content_file.write( str(entryDate) + "\t" + str(wordCountDict[entryDate]) + "\n")
+
+	if foundMatPlotLib:
+		#Create Graph
+		graphX = []
+		graphY = []
+
+		for entryDate in wordCountDict:
+			graphX.append(entryDate)
+			graphY.append( int(wordCountDict[ entryDate ]) )
+
+		N = len(graphX)
+		ind = np.arange(N)  # the x locations for the groups
+		width = 0.35       # the width of the bars
+
+		fig, ax = plt.subplots()
+		rects1 = ax.bar(ind, graphY, width, color='r')
+
+		# add some text for labels, title and axes ticks
+		ax.set_ylabel('Word Count')
+		ax.set_title('Word Count Progress for "' + config["bookName"] + '"' )
+		ax.set_xticks(ind + width)
+		ax.set_xticklabels(graphX)
+
+		#ax.legend((rects1[0], rects2[0]), ('Men', 'Women'))
+
+		plt.savefig(progressDirectory + "/progress.png", bbox_inches='tight')
+
 def printHelp():
 	print( "Usage:" )
 	print( "	enovel-project init - create base directories and starter content - DANGER: this will overwrite your current content" )
@@ -132,8 +196,8 @@ def initProject():
 		os.mkdir( "./Scenes" )
 	if os.path.isdir("./Notes") == False:
 		os.mkdir( "./Notes" )
-	if os.path.isdir("./" + exportDirectory) == False:
-		os.mkdir( "./" + exportDirectory )
+	if os.path.isdir(exportDirectory) == False:
+		os.mkdir( exportDirectory )
 
 	exampleCharacter = "#New Character Name\n\n##Role\n\nCharacter's role in the story\n\n##Description\n\nPhysical and mental description of the character."
 	if os.path.isfile("./Bios/Example Character.md") == False:
@@ -153,21 +217,20 @@ def createEPUB():
 		# print("DEBUG createEPUB()")
 		createBookMetaData()
 		preProcess( writeFile = True )
-		os.system("pandoc -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+		os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 		recreateEPUBAndTempFiles = False
-
 
 def createTXT():
 	#Requires SYSCALL to pandoc
 	# print("DEBUG createTXT()")
-	os.system("pandoc -t plain \"./" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"./" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
+	os.system("pandoc -t plain \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
 
 def createHTML():
 	#Requires SYSCALL to pandoc
 	createBookMetaData()
 	# print("DEBUG createHTML()")
 	preProcess( writeFile = True )
-	os.system("pandoc -s -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 
 
 def createMOBI():
@@ -175,7 +238,7 @@ def createMOBI():
 	#Requires SYSCALL to calibre tools
 	createEPUB()
 	# print("DEBUG createMOBI()")
-	os.system("ebook-convert \"./" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"./" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
+	os.system("ebook-convert \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
 	if os.path.isfile( config["bookFile"] + ".convert.log" ):
 		os.remove( config["bookFile"] + ".convert.log" )
 
@@ -185,7 +248,7 @@ def createPDF():
 	createBookMetaData()
 	# print("DEBUG createPDF()")
 	preProcess( writeFile = True )
-	os.system("pandoc -S -o \"./" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+	os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 
 
 def wordCount():
@@ -216,5 +279,7 @@ if len(sys.argv) > 1:
 		else:
 			printHelp()
 	removeTempFiles()
+	saveProgress()
 else:
 	printHelp()
+	saveProgress()
