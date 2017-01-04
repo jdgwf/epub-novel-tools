@@ -138,7 +138,7 @@ def saveProgress():
 			content_file.write( str(entryDate) + "\t" + str(wordCountDict[entryDate]) + "\n")
 
 	if foundMatPlotLib:
-		#Create Graph
+		#Create Overall Progress Graph
 		graphX = []
 		graphY = []
 
@@ -146,22 +146,51 @@ def saveProgress():
 			graphX.append(entryDate)
 			graphY.append( int(wordCountDict[ entryDate ]) )
 
-		N = len(graphX)
-		ind = np.arange(N)  # the x locations for the groups
-		width = 0.35       # the width of the bars
+		overallGraphNumCols = len(graphX)
+		overallGraphLocations = np.arange(overallGraphNumCols)  # the x locations for the groups
+		overallGraphBarWidth = 0.35       # the width of the bars
 
-		fig, ax = plt.subplots()
-		rects1 = ax.bar(ind, graphY, width, color='r')
+		overallGraphFig, overallGraphAX = plt.subplots()
+		rects1 = overallGraphAX.bar(overallGraphLocations, graphY, overallGraphBarWidth, color='r')
 
 		# add some text for labels, title and axes ticks
-		ax.set_ylabel('Word Count')
-		ax.set_title('Word Count Progress for "' + config["bookName"] + '"' )
-		ax.set_xticks(ind + width)
-		ax.set_xticklabels(graphX, rotation=90 )
+		overallGraphAX.set_ylabel('Word Count')
+		overallGraphAX.set_title('Overall Word Count Progress for "' + config["bookName"] + '"' )
+		overallGraphAX.set_xticks(overallGraphLocations + overallGraphBarWidth)
+		overallGraphAX.set_xticklabels(graphX, rotation=90 )
 
-		#ax.legend((rects1[0], rects2[0]), ('Men', 'Women'))
+		plt.savefig(progressDirectory + "/progress-overall.png", bbox_inches='tight')
 
-		plt.savefig(progressDirectory + "/progress.png", bbox_inches='tight')
+		overallGraphFig.clf()
+		plt.clf()
+
+		#Create Daily Progress Graph
+		graphX = []
+		graphY = []
+
+		lastCount = 0
+		for entryDate in sorted(wordCountDict.keys()):
+			graphX.append(entryDate)
+			graphY.append( int(wordCountDict[ entryDate ]) - lastCount )
+			lastCount = int(wordCountDict[ entryDate ])
+
+		dailyGraphNumCols = len(graphX)
+		dailyGraphLocations = np.arange(dailyGraphNumCols)  # the x locations for the groups
+		dailyGraphWidth = 0.35       # the width of the bars
+
+		dailyGraphFig, dailyGraphAX = plt.subplots()
+		rects1 = dailyGraphAX.bar(dailyGraphLocations, graphY, dailyGraphWidth, color='r')
+
+		# add some text for labels, title and axes ticks
+		dailyGraphAX.set_ylabel('Word Count')
+		dailyGraphAX.set_title('Daily Word Count Progress for "' + config["bookName"] + '"' )
+		dailyGraphAX.set_xticks( dailyGraphLocations + dailyGraphWidth )
+		dailyGraphAX.set_xticklabels(graphX, rotation=90 )
+
+		plt.savefig(progressDirectory + "/progress-daily.png", bbox_inches='tight')
+
+		dailyGraphFig.clf()
+		plt.clf()
 
 def printHelp():
 	print( "Usage:" )
