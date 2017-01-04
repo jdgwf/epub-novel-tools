@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+
+"""Sets up a series of directories and MarkDown compilation tools for Novel E-Book novel
+creation on Linux (tested on Ubuntu 16.04 and 16.10, should work on and Debian too).
+Provides word count functions and history tracking.
+"""
+
 import os
 import sys
 from glob import glob
@@ -7,15 +13,24 @@ import csv
 import datetime
 import imp
 
+__author__ = "Jeffrey D. Gordon"
+__copyright__ = "Copyright 2016, Jeffrey D. Gordon"
+__credits__ = ["Jeffrey D. Gordon"]
+__license__ = "GPL"
+__version__ = "0.8.0"
+__maintainer__ = "Jeffrey D. Gordon"
+__email__ = "jeff@jdgwf.com"
+__status__ = "Development"
 
-
+# Configurable Options (not really recommended)
 exportDirectory = "./Exports"
 manuscriptDir = "./Manuscript"
 progressDirectory = "./Progress"
-recreateEPUBAndTempFiles = True
-todaysProgress = 0
 
 # Initial Config - this will create a config.yml file to modify
+todaysProgress = 0
+recreateEPUBAndTempFiles = True
+
 config = dict(
 	bookName = "My Ebook",
 	bookFile = "My Ebook",

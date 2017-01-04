@@ -22,7 +22,7 @@ If want to create pdfs then you'll need to install the latex pdf libraries (inst
 
     sudo apt-get install -y texlive-latex-base texlive-fonts-recommended
 
-*I have not tested this with Ubuntu 14.* or 15.* as I don't use anything older than the latest LTS on my desktop (#sorrynotsorry). I'm sure that python3 will at least have to be installed.*
+*I have not tested this with Ubuntu 14.\* or 15.\* as I don't use anything older than the latest LTS on my desktop (#sorrynotsorry). I'm sure that python3 will at least have to be installed.*
 
 # Fedora 25
 You can install the requirements for this app with the following command (install size: ~365mb, this does include the full calibre e-book reader for your convienience):
@@ -44,7 +44,7 @@ Install pandoc for Windows including the suggested MiKTeX package <http://www.pa
 
 Install Calibre for Windows: <http://calibre-ebook.com/download_windows> for ebook-convert
 
-*I'm not sure if it's the environment, the python, Calibre, and/or pandoc builds, but it seems that the compilation seems noticeably slower than Ubuntu. It's still not slow, and perception is easily skewed.*
+*I'm not sure if it's the environment, the python, Calibre, and/or pandoc builds, but it seems that the compilation seems noticeably slower than Ubuntu 16.04. Don't fret still not slow (as you should be spending more time writing than compiling).*
 
 # Progress Tracking
 I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time the script is run (even for just displaying the help). Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
