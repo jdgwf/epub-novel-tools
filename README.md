@@ -8,6 +8,8 @@ This **almost** works in Windows 10's Windows Subsystem for Linux. There's an is
 
 Reference: <https://github.com/Microsoft/BashOnWindows/issues/307>
 
+**Verified**: This now works on the Fast Ring release of Windows 10. That version will trickle down to Slow Ring and eventually Release.
+
 ## Requirements
 This software uses python3, calibre, and pandoc..
 
@@ -20,6 +22,7 @@ If want to create pdfs then you'll need to install the latex pdf libraries (inst
 
     sudo apt-get install -y texlive-latex-base texlive-fonts-recommended
 
+*I have not tested this with Ubuntu 14.* or 15.* as I don't use anything older than the latest LTS on my desktop (#sorrynotsorry). I'm sure that python3 will at least have to be installed.*
 
 # Fedora 25
 You can install the requirements for this app with the following command (install size: ~365mb, this does include the full calibre e-book reader for your convienience):
@@ -30,7 +33,7 @@ If want to create pdfs then you'll need to install the latex pdf libraries (inst
 
     sudo yum -y install texlive
 
-This should work in CentOS, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
+This should work in CentOS 7, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
 
 # Windows (Native, tested in Windows 10)
 Install Python 3 for Windows (don't forget to add the 'add python to path variable' in the install options ) <https://www.python.org/downloads/windows/>
@@ -41,11 +44,13 @@ Install pandoc for Windows including the suggested MiKTeX package <http://www.pa
 
 Install Calibre for Windows: <http://calibre-ebook.com/download_windows> for ebook-convert
 
+*I'm not sure if it's the environment, the python, Calibre, and/or pandoc builds, but it seems that the compilation seems noticeably slower than Ubuntu. It's still not slow, and perception is easily skewed.*
+
 # Progress Tracking
 I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time the script is run (even for just displaying the help). Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
 
     sudo apt-get install python3-matplotlib
-    
+
 If not in Ubuntu:
 
     pip3 install matplotlib 
@@ -79,7 +84,7 @@ To compile your ebooks there are various commands:
 You can combine arguments as well `python enovel-project.py html pdf` will create html and pdf formats of the manuscript
 
 ## Looking to the Future
-Eventually I'd like to remove the os.system() calls and have all the document creation native Python. This will be a long, slow process *IF* I decide to go that route.
+Eventually I'd like to remove the os.system() calls and have all the document creation native Python. This will be a long, slow process *IF* I decide to go that route as what works here works great.
 
 ### NanoWriMo Imports and Updates
 By NaNoWriMo 2017, I'll should have the ability to update your word count from a wordcount or new function. I may also have the ability to import current word counts via their API too. I'm still looking into that.
@@ -91,3 +96,5 @@ Until I write my own simplified editor, I use `atom .` to open the current direc
 * smart-quotes-plus
 
 Atom can be downloaded at http://atom.io or installed via `apt-get install atom`
+
+Feel free to use any editor you like, whether it be a coding editor, plain text or a dedicated markdown editor. Open Source is about choice and freedom :)

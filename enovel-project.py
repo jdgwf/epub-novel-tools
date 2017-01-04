@@ -315,7 +315,7 @@ def wordCount():
 	manuscriptData = preProcess()
 	manuscriptData = normalizeMarkDown( manuscriptData )
 	print("Project Wordcount: " + str(len(manuscriptData.split())))
-	print("Today's Progress: " + str(todaysProgress) )
+	print(" Today's Progress: " + str(todaysProgress) )
 saveProgress()
 if len(sys.argv) > 1:
 	for arg in sys.argv:
