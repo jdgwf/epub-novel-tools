@@ -250,20 +250,20 @@ def printHelp():
 def initProject():
 	if os.path.isdir("./Manuscript") == False:
 		os.mkdir( "./Manuscript" )
-	if os.path.isdir("./Manuscript/Chapter 1 - Your first Chapter/") == False:
-		os.mkdir( "./Manuscript/Chapter 1 - Your first Chapter/" )
+	if os.path.isdir("./Manuscript/Chapter 01 - Your first Chapter/") == False:
+		os.mkdir( "./Manuscript/Chapter 01 - Your first Chapter/" )
 
 	chapterHeading = "\\\\newpage\n\n"
 	chapterHeading += "#Chapter 1 - Your first Chapter\n\n"
-	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md") == False:
-		with open("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
+	if os.path.isfile("./Manuscript/Chapter 01 - Your first Chapter/00 - Chapter Header.md") == False:
+		with open("./Manuscript/Chapter 01 - Your first Chapter/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
 			chapterHeaderFile.write( chapterHeading )
 
 	firstScene = "Your book starts here!\n\n"
 	firstScene += "Your second paragraph\n"
 
-	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md") == False:
-		with open("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
+	if os.path.isfile("./Manuscript/Chapter 01 - Your first Chapter/01 - Setting the stage.md") == False:
+		with open("./Manuscript/Chapter 01 - Your first Chapter/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
 			firstSceneFile.write( firstScene )
 
 	if os.path.isdir("./Bios") == False:

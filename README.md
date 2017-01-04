@@ -3,6 +3,8 @@
 ## Description
 Sets up a series of directories and MarkDown compilation tools for Novel E-Book novel creation on Linux (tested on Ubuntu 16.04 and 16.10, should work on and Debian too).
 
+As of version 0.8 Provides word count functions and history tracking.
+
 ## Ubuntu on Windows 10
 This **almost** works in Windows 10's Windows Subsystem for Linux. There's an issue with the POSIX timer that's been fixed in the next Windows 10 release when trying to run pandoc. I'll see how it goes and keep this section updated.
 
@@ -88,6 +90,8 @@ Eventually I'd like to remove the os.system() calls and have all the document cr
 
 ### NanoWriMo Imports and Updates
 By NaNoWriMo 2017, I'll should have the ability to update your word count from a wordcount or new function. I may also have the ability to import current word counts via their API too. I'm still looking into that.
+
+*Just a note for self-reminder: http://nanowrimo.org/en/wordcount_api*
 
 ## Editor
 Until I write my own simplified editor, I use `atom .` to open the current directory for creating and modifying directories and files. There's a few plugins that I use that's very handy for UTF-8 fancy quotes:
