@@ -42,7 +42,6 @@ except ImportError:
     foundMatPlotLib = False
 
 if foundMatPlotLib:
-	print("FOUND MATPLOTLIBS")
 	import numpy as np
 	import matplotlib.pyplot as plt
 
