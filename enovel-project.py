@@ -131,8 +131,9 @@ def saveProgress():
 				wordCountDict[entryDate] = wordCount
 
 	wordCountDict[ str( datetime.date.today())] = currentWordCount
+
 	with open( progressDirectory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
-		for entryDate in wordCountDict:
+		for entryDate in sorted(wordCountDict.keys()):
 			content_file.write( str(entryDate) + "\t" + str(wordCountDict[entryDate]) + "\n")
 
 	if foundMatPlotLib:
