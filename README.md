@@ -45,6 +45,12 @@ Install Calibre for Windows: <http://calibre-ebook.com/download_windows> for ebo
 I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time the script is run (even for just displaying the help). Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
 
     sudo apt-get install python3-matplotlib
+    
+If not in Ubuntu:
+
+    pip3 install matplotlib 
+
+Might work.
 
 Otherwise only the TSV will be updated.
 
@@ -76,7 +82,7 @@ You can combine arguments as well `python enovel-project.py html pdf` will creat
 Eventually I'd like to remove the os.system() calls and have all the document creation native Python. This will be a long, slow process *IF* I decide to go that route.
 
 ### NanoWriMo Imports and Updates
-By NaNoWriMo 2017, I'll should have the ability to update your word count from a wordcount or new function. I should also have the ability to import current word counts via their API too. I'm still looking into that.
+By NaNoWriMo 2017, I'll should have the ability to update your word count from a wordcount or new function. I may also have the ability to import current word counts via their API too. I'm still looking into that.
 
 ## Editor
 Until I write my own simplified editor, I use `atom .` to open the current directory for creating and modifying directories and files. There's a few plugins that I use that's very handy for UTF-8 fancy quotes:

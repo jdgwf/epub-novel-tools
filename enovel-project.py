@@ -23,7 +23,8 @@ config = dict(
 	copyRight = "2016 All rights reserved",
 	languageCode = "en-US",
 	publisherName = "Self Published",
-	coverImage = ""
+	coverImage = "",
+	nanoWriMoSecretKey = ""
 )
 
 if os.path.isfile("config.yml") == False:
