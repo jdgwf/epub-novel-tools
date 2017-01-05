@@ -18,7 +18,7 @@ This software uses python3, calibre, and pandoc..
 ### Ubuntu 16.04 && 16.10 (Tested and Verified)
 You can install the requirements for this app with the following command (install size: ~223mb, this does include the full calibre e-book reader for your convienience):
 
-    sudo apt-get install -y pandoc calibre calibre-bin
+    sudo apt-get install -y pandoc calibre calibre-bin python3-yaml
 
 If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~282mb):
 
