@@ -241,6 +241,7 @@ def saveProgress():
 def printHelp():
 	print( "Usage:" )
 	print( "	enovel-project init - create base directories and starter content - DANGER: this will overwrite your current content" )
+	print( "	enovel-project all - creates a .mobi, .epub, .pdf, .txt, and .html from your manuscript then displays a wordcount" )
 	print( "	enovel-project ebooks - create .mobi and .epub from your manuscript" )
 	print( "	enovel-project pdf - creates a pdf from your manuscript" )
 	print( "	enovel-project html - creates a html from your manuscript" )
@@ -250,20 +251,20 @@ def printHelp():
 def initProject():
 	if os.path.isdir("./Manuscript") == False:
 		os.mkdir( "./Manuscript" )
-	if os.path.isdir("./Manuscript/Chapter 01 - Your first Chapter/") == False:
-		os.mkdir( "./Manuscript/Chapter 01 - Your first Chapter/" )
+	if os.path.isdir("./Manuscript/Chapter 1 - Your first Chapter/") == False:
+		os.mkdir( "./Manuscript/Chapter 1 - Your first Chapter/" )
 
 	chapterHeading = "\\\\newpage\n\n"
 	chapterHeading += "#Chapter 1 - Your first Chapter\n\n"
-	if os.path.isfile("./Manuscript/Chapter 01 - Your first Chapter/00 - Chapter Header.md") == False:
-		with open("./Manuscript/Chapter 01 - Your first Chapter/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
+	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md") == False:
+		with open("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
 			chapterHeaderFile.write( chapterHeading )
 
 	firstScene = "Your book starts here!\n\n"
 	firstScene += "Your second paragraph\n"
 
-	if os.path.isfile("./Manuscript/Chapter 01 - Your first Chapter/01 - Setting the stage.md") == False:
-		with open("./Manuscript/Chapter 01 - Your first Chapter/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
+	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md") == False:
+		with open("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
 			firstSceneFile.write( firstScene )
 
 	if os.path.isdir("./Bios") == False:
@@ -294,11 +295,13 @@ def createEPUB():
 		preProcess( writeFile = True )
 		os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 		recreateEPUBAndTempFiles = False
+		print("* " + exportDirectory + "/" + config["bookFile"] + ".epub created")
 
 def createTXT():
 	#Requires SYSCALL to pandoc
 	# print("DEBUG createTXT()")
 	os.system("pandoc -t plain \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".txt created")
 
 def createHTML():
 	#Requires SYSCALL to pandoc
@@ -306,6 +309,7 @@ def createHTML():
 	# print("DEBUG createHTML()")
 	preProcess( writeFile = True )
 	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".html created")
 
 
 def createMOBI():
@@ -314,6 +318,7 @@ def createMOBI():
 	createEPUB()
 	# print("DEBUG createMOBI()")
 	os.system("ebook-convert \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".mobi created")
 	if os.path.isfile( config["bookFile"] + ".convert.log" ):
 		os.remove( config["bookFile"] + ".convert.log" )
 
@@ -324,18 +329,26 @@ def createPDF():
 	# print("DEBUG createPDF()")
 	preProcess( writeFile = True )
 	os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".pdf created")
 
 
 def wordCount():
 	manuscriptData = preProcess()
 	manuscriptData = normalizeMarkDown( manuscriptData )
-	print("Project Wordcount: " + str(len(manuscriptData.split())))
-	print(" Today's Progress: " + str(todaysProgress) )
+	print("    Project Wordcount: " + str(len(manuscriptData.split())))
+	print("     Today's Progress: " + str(todaysProgress) )
 saveProgress()
 if len(sys.argv) > 1:
 	for arg in sys.argv:
 		if arg == "init":
 			initProject()
+		if arg == "all":
+			createEPUB()
+			createMOBI()
+			createHTML()
+			createTXT()
+			createPDF()
+			wordCount()
 		elif arg == "ebooks":
 			createEPUB()
 			createMOBI()
