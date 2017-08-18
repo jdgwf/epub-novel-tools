@@ -48,6 +48,18 @@ Install Calibre for Windows: <http://calibre-ebook.com/download_windows> for ebo
 
 *I'm not sure if it's the environment, the python, Calibre, and/or pandoc builds, but it seems that the compilation seems noticeably slower than Ubuntu 16.04. Don't fret still not slow (as you should be spending more time writing than compiling).*
 
+# MacOS (Native)
+
+This guide requires the use of homebrew - https://brew.sh/ Install this fantastic package manager to install the requirements.
+
+	brew install python3 pandoc Caskroom/cask/calibre
+	pip3 install pyyaml matplotlib
+
+## For PDF Creation
+Again, this is a fairly large library and you may not need it
+
+	brew cask install mactex
+
 # Progress Tracking
 I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time the script is run (even for just displaying the help). Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
 
@@ -55,7 +67,7 @@ I've added functionality which will track your word count progress per day. A ./
 
 If not in Ubuntu:
 
-    pip3 install matplotlib 
+    pip3 install matplotlib
 
 Might work.
 
@@ -65,7 +77,11 @@ Otherwise only the TSV will be updated.
 Creation of a novel is simple.
 Type:
 
-    python enovel-project.py init
+	python enovel-project.py init
+
+or, if py3 is not your default version
+
+	python3 enovel-project.py init
 
 or
 
