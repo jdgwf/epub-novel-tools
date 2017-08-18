@@ -337,12 +337,13 @@ def wordCount():
 	manuscriptData = normalizeMarkDown( manuscriptData )
 	print("    Project Wordcount: " + str(len(manuscriptData.split())))
 	print("     Today's Progress: " + str(todaysProgress) )
-saveProgress()
+
 if len(sys.argv) > 1:
 	for arg in sys.argv:
 		if arg == "init":
 			initProject()
-		if arg == "all":
+		elif arg == "all":
+			saveProgress()
 			createEPUB()
 			createMOBI()
 			createHTML()
@@ -350,22 +351,29 @@ if len(sys.argv) > 1:
 			createPDF()
 			wordCount()
 		elif arg == "ebooks":
+			saveProgress()
 			createEPUB()
 			createMOBI()
 		elif arg == "pdf":
+			saveProgress()
 			createPDF()
 		elif arg == "html":
+			saveProgress()
 			createHTML()
 		elif sys.argv[1] == "txt":
+			saveProgress()
 			createTXT()
 		elif arg == "text":
+			saveProgress()
 			createTXT()
 		elif arg == "wordcount":
+			saveProgress()
 			wordCount()
 		elif arg == __file__:
 			# Do Nothing
 			pass
 		else:
+			print("Warning unknown argument '" + arg + "'");
 			printHelp()
 	removeTempFiles()
 
