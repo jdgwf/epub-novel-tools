@@ -99,10 +99,12 @@ To compile your ebooks there are various commands:
 * `python enovel-project.py ebooks` - creates both .mobi and .epub versions of your ./Manucript/
 * `python enovel-project.py html` - creates a formatted HTML file of your Manuscript
 * `python enovel-project.py rtf` - creates a formatted Rich Text Format file of your Manuscript
-* `python enovel-project.py text` - (also 'txt') creates a formatted text file of your Manuscript
+* `python enovel-project.py text` - (also 'txt') creates a marginzed text file of your Manuscript
+* `python enovel-project.py md` - (also 'markdown') creates a markdown file of your Manuscript
 * `python enovel-project.py pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
 * `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
 * `python enovel-project.py nano` - will attempt to update the progress on your NaNoWriMo account if you've filled in your username and secret in the config.yml file
+* `python enovel-project.py chapter` - ( also 'newchapter' or 'nc' ) - will try to automatically create a new chapter dirctory and initial files
 * `python enovel-project.py all` - does ALL THE THINGS!!!1111eleven
 
 You can combine arguments as well `python enovel-project.py html pdf` will create html and pdf formats of the manuscript

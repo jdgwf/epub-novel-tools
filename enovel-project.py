@@ -8,6 +8,7 @@ Provides word count functions and history tracking.
 import os
 import sys
 from glob import glob
+from shutil import copyfile
 import yaml
 import csv
 import datetime
@@ -164,6 +165,8 @@ def removeTempFiles():
 	for tmpDir in tmpPDFConv:
 		os.rmdir( tmpDir )
 
+
+
 def saveProgress():
 	global todaysProgress
 	if os.path.isdir( progressDirectory ) == False:
@@ -282,24 +285,44 @@ def printHelp():
 	print( "	enovel-project text - creates a text file from your manuscript" )
 	print( "	enovel-project wordcount - gives you a current wordcount of your manuscript" )
 
-def initProject():
+def directoryCount(path):
+	dirCount = 0
+	for root, dirs, files in os.walk(path):
+		dirCount += len(dirs)
+
+	return dirCount
+
+def newChapter( chapterNumber = 0 ):
+	if chapterNumber == 1:
+		chapterName = "Your first Chapter"
+	else:
+		chapterName = "New Chapter"
+
 	if os.path.isdir("./Manuscript") == False:
 		os.mkdir( "./Manuscript" )
-	if os.path.isdir("./Manuscript/Chapter 1 - Your first Chapter/") == False:
-		os.mkdir( "./Manuscript/Chapter 1 - Your first Chapter/" )
+
+	if chapterNumber == 0:
+		chapterNumber = directoryCount( "./Manuscript" ) + 1
+
+
+	if os.path.isdir("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/") == False:
+		os.mkdir( "./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/" )
 
 	chapterHeading = "\\\\newpage\n\n"
-	chapterHeading += "#Chapter 1 - Your first Chapter\n\n"
-	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md") == False:
-		with open("./Manuscript/Chapter 1 - Your first Chapter/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
+	chapterHeading += "#Chapter " + str(chapterNumber) + " - " + chapterName + "\n\n"
+	if os.path.isfile("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/00 - Chapter Header.md") == False:
+		with open("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
 			chapterHeaderFile.write( chapterHeading )
 
 	firstScene = "Your book starts here!\n\n"
 	firstScene += "Your second paragraph\n"
 
-	if os.path.isfile("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md") == False:
-		with open("./Manuscript/Chapter 1 - Your first Chapter/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
+	if os.path.isfile("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/01 - Setting the stage.md") == False:
+		with open("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
 			firstSceneFile.write( firstScene )
+
+def initProject():
+	newChapter(1)
 
 	if os.path.isdir("./Bios") == False:
 		os.mkdir( "./Bios" )
@@ -319,6 +342,7 @@ def initProject():
 	if os.path.isfile("./Scenes/Example Scene.md") == False:
 		with open("./Scenes/Example Scene.md" , 'w', encoding="utf8") as exampleSceneFile:
 			exampleSceneFile.write( exampleScene )
+
 
 def createEPUB():
 	global recreateEPUBAndTempFiles
@@ -356,6 +380,10 @@ def createMOBI():
 	if os.path.isfile( config["bookFile"] + ".convert.log" ):
 		os.remove( config["bookFile"] + ".convert.log" )
 
+def createMD():
+	copyfile( "./temp_work_file.md", exportDirectory + "/" + config["bookFile"] + ".md" )
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".md created")
+
 
 def createPDF():
 	#Requires SYSCALL to pandoc
@@ -383,6 +411,7 @@ if len(sys.argv) > 1:
 			createHTML()
 			createTXT()
 			createPDF()
+			createMD()
 			wordCount()
 		elif arg == "ebooks":
 			saveProgress()
@@ -391,10 +420,22 @@ if len(sys.argv) > 1:
 		elif arg == "pdf":
 			saveProgress()
 			createPDF()
+		elif arg == "md":
+			saveProgress()
+			createMD()
+		elif arg == "markdown":
+			saveProgress()
+			createMD()
+		elif arg == "nc":
+			newChapter()
+		elif arg == "newchapter":
+			newChapter()
+		elif arg == "chapter":
+			newChapter()
 		elif arg == "html":
 			saveProgress()
 			createHTML()
-		elif sys.argv[1] == "txt":
+		elif arg == "txt":
 			saveProgress()
 			createTXT()
 		elif arg == "text":
