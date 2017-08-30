@@ -143,7 +143,6 @@ def preProcess(writeFile = False):
 
 def createBookMetaData():
 	if recreateEPUBAndTempFiles == True:
-		# print("DEBUG createBookMetaData()")
 		fileContents = "---\n"
 		fileContents += "title: " + config["bookName"] + "\n"
 		fileContents += "author: " + config["authorName"] + "\n"
@@ -348,7 +347,6 @@ def createEPUB():
 	global recreateEPUBAndTempFiles
 	#Requires SYSCALL to pandoc
 	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
-		print("DEBUG createEPUB()")
 		createBookMetaData()
 		preProcess( writeFile = True )
 		os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
@@ -357,14 +355,12 @@ def createEPUB():
 
 def createTXT():
 	#Requires SYSCALL to pandoc
-	# print("DEBUG createTXT()")
 	os.system("pandoc -t plain \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
 	print("* " + exportDirectory + "/" + config["bookFile"] + ".txt created")
 
 def createHTML():
 	#Requires SYSCALL to pandoc
 	createBookMetaData()
-	# print("DEBUG createHTML()")
 	preProcess( writeFile = True )
 	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 	print("* " + exportDirectory + "/" + config["bookFile"] + ".html created")
@@ -374,7 +370,6 @@ def createMOBI():
 	#Requires SYSCALL to pandoc
 	#Requires SYSCALL to calibre tools
 	createEPUB()
-	# print("DEBUG createMOBI()")
 	os.system("ebook-convert \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
 	print("* " + exportDirectory + "/" + config["bookFile"] + ".mobi created")
 	if os.path.isfile( config["bookFile"] + ".convert.log" ):
@@ -388,7 +383,6 @@ def createMD():
 def createPDF():
 	#Requires SYSCALL to pandoc
 	createBookMetaData()
-	# print("DEBUG createPDF()")
 	preProcess( writeFile = True )
 	os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 	print("* " + exportDirectory + "/" + config["bookFile"] + ".pdf created")
