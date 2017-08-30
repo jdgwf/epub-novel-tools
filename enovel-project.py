@@ -376,8 +376,16 @@ def createMOBI():
 		os.remove( config["bookFile"] + ".convert.log" )
 
 def createMD():
-	copyfile( "./temp_work_file.md", exportDirectory + "/" + config["bookFile"] + ".md" )
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".md created")
+	global recreateEPUBAndTempFiles
+	#Requires SYSCALL to pandoc
+	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
+		createBookMetaData()
+		preProcess( writeFile = True )
+		copyfile( "./temp_work_file.md", exportDirectory + "/" + config["bookFile"] + ".md" )
+		print("* " + exportDirectory + "/" + config["bookFile"] + ".md created")
+		recreateEPUBAndTempFiles = False
+
+
 
 
 def createPDF():
@@ -426,12 +434,6 @@ if len(sys.argv) > 1:
 		elif arg == "markdown":
 			saveProgress()
 			createMD()
-		elif arg == "nc":
-			newChapter()
-		elif arg == "newchapter":
-			newChapter()
-		elif arg == "chapter":
-			newChapter()
 		elif arg == "html":
 			saveProgress()
 			createHTML()
@@ -446,6 +448,12 @@ if len(sys.argv) > 1:
 			wordCount()
 		elif arg == "nano":
 			updateNaNo()
+		elif arg == "nc":
+			newChapter()
+		elif arg == "newchapter":
+			newChapter()
+		elif arg == "chapter":
+			newChapter()
 		elif arg == __file__:
 			# Do Nothing
 			pass
