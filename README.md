@@ -104,8 +104,8 @@ To compile your ebooks there are various commands:
 * `python enovel-project.py pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
 * `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
 * `python enovel-project.py nano` - will attempt to update the progress on your NaNoWriMo account if you've filled in your username and secret in the config.yml file
-* `python enovel-project.py chapter` - ( also 'newchapter' or 'nc' ) - will try to automatically create a new chapter dirctory and initial files
-* `python enovel-project.py all` - does ALL THE THINGS!!!1111eleven
+* `python enovel-project.py chapter` - ( also 'newchapter' or 'nc' ) - will try to automatically create a new chapter directory and initial files
+* `python enovel-project.py all` - Attempts to export all exportable formats and then produces a word count.
 
 You can combine arguments as well `python enovel-project.py html pdf` will create html and pdf formats of the manuscript
 
