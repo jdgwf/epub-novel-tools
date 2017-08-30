@@ -411,6 +411,12 @@ if len(sys.argv) > 1:
 			saveProgress()
 			createEPUB()
 			createMOBI()
+		elif arg == "mobi":
+			saveProgress()
+			createMOBI()
+		elif arg == "epub":
+			saveProgress()
+			createEPUB()
 		elif arg == "pdf":
 			saveProgress()
 			createPDF()
