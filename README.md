@@ -60,8 +60,10 @@ Again, this is a fairly large library and you may not need it
 
 	brew cask install mactex
 
+**Note:** You'll have to restart your shell for pdflatex to show up for some reason I don't want to research.
+
 # Progress Tracking
-I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time the script is run (even for just displaying the help). Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
+I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time any progress is saved. Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
 
     sudo apt-get install python3-matplotlib
 
@@ -96,8 +98,12 @@ To compile your ebooks there are various commands:
 * `python enovel-project.py` - shows some of the options
 * `python enovel-project.py ebooks` - creates both .mobi and .epub versions of your ./Manucript/
 * `python enovel-project.py html` - creates a formatted HTML file of your Manuscript
+* `python enovel-project.py rtf` - creates a formatted Rich Text Format file of your Manuscript
+* `python enovel-project.py text` - (also 'txt') creates a formatted text file of your Manuscript
 * `python enovel-project.py pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
 * `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
+* `python enovel-project.py nano` - will attempt to update the progress on your NaNoWriMo account if you've filled in your username and secret in the config.yml file
+* `python enovel-project.py all` - does ALL THE THINGS!!!1111eleven
 
 You can combine arguments as well `python enovel-project.py html pdf` will create html and pdf formats of the manuscript
 

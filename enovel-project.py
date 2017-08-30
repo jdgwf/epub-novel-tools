@@ -12,12 +12,14 @@ import yaml
 import csv
 import datetime
 import imp
+import hashlib
+import requests
 
 __author__ = "Jeffrey D. Gordon"
-__copyright__ = "Copyright 2016, Jeffrey D. Gordon"
+__copyright__ = "Copyright 2016-2017, Jeffrey D. Gordon"
 __credits__ = ["Jeffrey D. Gordon"]
 __license__ = "GPL"
-__version__ = "0.8.0"
+__version__ = "0.8.5"
 __maintainer__ = "Jeffrey D. Gordon"
 __email__ = "jeff@jdgwf.com"
 __status__ = "Development"
@@ -35,11 +37,12 @@ config = dict(
 	bookName = "My Ebook",
 	bookFile = "My Ebook",
 	authorName = "Author Name",
-	copyRight = "2016 All rights reserved",
+	copyRight = str(datetime.datetime.now().year) + " All rights reserved",
 	languageCode = "en-US",
 	publisherName = "Self Published",
 	coverImage = "",
-	nanoWriMoSecretKey = ""
+	nanoWriMoSecretKey = "",
+	nanoWriMoUsername = ""
 )
 
 if os.path.isfile("config.yml") == False:
@@ -49,6 +52,12 @@ else:
 	config = yaml.safe_load(open("config.yml", encoding="utf8"))
 
 
+# To get NanoWrioSecret go to https://nanowrimo.org/api/wordcount while logged in.
+if "nanoWriMoSecretKey" not in config:
+	config["nanoWriMoSecretKey"] = ""
+
+if "nanoWriMoUsername" not in config:
+	config["nanoWriMoUsername"] = ""
 
 try:
     imp.find_module('numpy')
@@ -62,7 +71,9 @@ if foundMatPlotLib:
 	import matplotlib.pyplot as plt
 
 # Immutable Variables
-
+nanoAPIUrlCurrentWordCount = "https://nanowrimo.org/modules/wordcount_api/wc/" + config["nanoWriMoUsername"]
+nanoAPIUrlCurrentWordCountHistory = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
+nanoAPIUrlUpdateWordCount = "https://nanowrimo.org/api/wordcount"
 
 def normalizeMarkDown( fileContents ):
 	# trim the contents
@@ -78,6 +89,28 @@ def normalizeMarkDown( fileContents ):
 
 	return fileContents
 
+def updateNaNo():
+	if config["nanoWriMoSecretKey"] and config["nanoWriMoUsername"]:
+
+		manuscriptData = preProcess()
+		manuscriptData = normalizeMarkDown( manuscriptData )
+		theWordCount = str(len(manuscriptData.split()))
+
+		theWordCount = "59003"
+
+		theHash =  str(hashlib.sha1( str.encode(config["nanoWriMoSecretKey"] + config["nanoWriMoUsername"] + theWordCount) ).hexdigest() )
+
+		payload = {
+			'hash': theHash,
+			'username': config["nanoWriMoUsername"],
+			'wordcount': theWordCount
+		}
+		print("* Connecting to " + nanoAPIUrlUpdateWordCount)
+		print( payload )
+		requestResult = requests.put( nanoAPIUrlUpdateWordCount, data=payload )
+
+		print( "Request Result" + str(requestResult) )
+
 
 def preProcess(writeFile = False):
 	if os.path.isdir(exportDirectory) == False:
@@ -86,13 +119,14 @@ def preProcess(writeFile = False):
 	for root, dirs, files in sorted(os.walk( manuscriptDir )):
 		path = root.split('/')
 		for file in sorted(files):
-			with open(manuscriptDir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
-				# get file contents
-				fileContents = content_file.read()
+			if file[0] != ".":
+				with open(manuscriptDir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
+					# get file contents
+					fileContents = content_file.read()
 
-				fileContents = normalizeMarkDown( fileContents )
-				# add an md HR at the end of the file
-				manuscriptContents += fileContents + "\n\n----\n\n"
+					fileContents = normalizeMarkDown( fileContents )
+					# add an md HR at the end of the file
+					manuscriptContents += fileContents + "\n\n----\n\n"
 		# remove final "\n\n----\n\n"
 		if manuscriptContents.endswith("\n\n----\n\n"):
 			manuscriptContents = manuscriptContents[:-len("\n\n----\n\n")]
@@ -115,7 +149,7 @@ def createBookMetaData():
 		fileContents += "rights:  " + config["copyRight"] + "\n"
 		fileContents += "language: " + config["languageCode"] + "\n"
 		fileContents += "publisher: " + config["publisherName"] + "\n"
-		if config["coverImage"] != "":
+		if "coverImage" in config and config["coverImage"] != "":
 			fileContents += "cover-image: " + config["coverImage"] + "\n"
 		fileContents += "...\n"
 		with open("./" + "00-ebook-info.txt" , 'w', encoding="utf8") as metaFile:
@@ -290,7 +324,7 @@ def createEPUB():
 	global recreateEPUBAndTempFiles
 	#Requires SYSCALL to pandoc
 	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
-		# print("DEBUG createEPUB()")
+		print("DEBUG createEPUB()")
 		createBookMetaData()
 		preProcess( writeFile = True )
 		os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
@@ -367,8 +401,10 @@ if len(sys.argv) > 1:
 			saveProgress()
 			createTXT()
 		elif arg == "wordcount":
-			saveProgress()
+			# saveProgress()
 			wordCount()
+		elif arg == "nano":
+			updateNaNo()
 		elif arg == __file__:
 			# Do Nothing
 			pass
