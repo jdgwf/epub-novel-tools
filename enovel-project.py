@@ -97,8 +97,6 @@ def updateNaNo():
 		manuscriptData = normalizeMarkDown( manuscriptData )
 		theWordCount = str(len(manuscriptData.split()))
 
-		theWordCount = "59003"
-
 		theHash =  str(hashlib.sha1( str.encode(config["nanoWriMoSecretKey"] + config["nanoWriMoUsername"] + theWordCount) ).hexdigest() )
 
 		payload = {
