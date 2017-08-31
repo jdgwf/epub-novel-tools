@@ -103,6 +103,8 @@ To compile your ebooks there are various commands:
 * `python enovel-project.py rtf` - creates a formatted Rich Text Format file of your Manuscript
 * `python enovel-project.py text` - (also `txt`) creates a marginzed text file of your Manuscript
 * `python enovel-project.py md` - (also `markdown`) creates a markdown file of your Manuscript
+* `python enovel-project.py doc` - creates a legacy Microsoft Word file of your Manuscript
+* `python enovel-project.py docx` - creates a Microsoft Word file file of your Manuscript
 * `python enovel-project.py pdf` - if the latex libs are installed, this will create a beautiful PDF of your manuscript
 * `python enovel-project.py wordcount` - will provide a final wordcount for your manuscript
 * `python enovel-project.py nano` - will attempt to update the progress on your NaNoWriMo account if you've filled in your username and secret in the config.yml file

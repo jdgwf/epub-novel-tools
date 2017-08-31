@@ -418,6 +418,20 @@ def createPDF():
 	os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 	print("* " + exportDirectory + "/" + config["bookFile"] + ".pdf created")
 
+def createDOC():
+	#Requires SYSCALL to pandoc
+	createBookMetaData()
+	preProcess( writeFile = True )
+	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".doc created")
+
+def createDOCX():
+	#Requires SYSCALL to pandoc
+	createBookMetaData()
+	preProcess( writeFile = True )
+	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+	print("* " + exportDirectory + "/" + config["bookFile"] + ".docx created")
+
 
 def wordCount():
 	manuscriptData = preProcess()
@@ -437,6 +451,8 @@ if len(sys.argv) > 1:
 			createTXT()
 			createPDF()
 			createMD()
+			createDOC()
+			createDOCX()
 			wordCount()
 		elif arg == "ebooks":
 			saveProgress()
@@ -451,6 +467,12 @@ if len(sys.argv) > 1:
 		elif arg == "pdf":
 			saveProgress()
 			createPDF()
+		elif arg == "doc":
+			saveProgress()
+			createDOC()
+		elif arg == "docx":
+			saveProgress()
+			createDOCX()
 		elif arg == "md":
 			saveProgress()
 			createMD()
