@@ -74,7 +74,7 @@ if foundMatPlotLib:
 # Immutable Variables
 nanoAPIUrlCurrentWordCount = "https://nanowrimo.org/modules/wordcount_api/wc/" + config["nanoWriMoUsername"]
 nanoAPIUrlCurrentWordCountHistory = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
-nanoAPIUrlUpdateWordCount = "https://nanowrimo.org/api/wordcount"
+nanoAPIUrlUpdateWordCount = "http://nanowrimo.org/api/wordcount"
 
 def normalizeMarkDown( fileContents ):
 	# trim the contents
@@ -106,11 +106,18 @@ def updateNaNo():
 			'username': config["nanoWriMoUsername"],
 			'wordcount': theWordCount
 		}
-		print("* Connecting to " + nanoAPIUrlUpdateWordCount)
-		print( payload )
+		print("* Updating NaNoWriMo update count... Connecting to " + nanoAPIUrlUpdateWordCount)
+		# print( payload )
 		requestResult = requests.put( nanoAPIUrlUpdateWordCount, data=payload )
 
-		print( "Request Result" + str(requestResult) )
+		# print(requestResult.status_code)
+
+		if requestResult.status_code == 200:
+			print("* NanoWriMo.org responded positive")
+			return True
+		else:
+			print("* NanoWriMo.org responded NEGATIVE. Your word count was not updated")
+			return False
 
 
 def preProcess(writeFile = False):
