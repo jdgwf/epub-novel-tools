@@ -283,13 +283,29 @@ def saveProgress():
 
 def printHelp():
 	print( "Usage:" )
-	print( "	enovel-project init - create base directories and starter content - DANGER: this will overwrite your current content" )
-	print( "	enovel-project all - creates a .mobi, .epub, .pdf, .txt, and .html from your manuscript then displays a wordcount" )
-	print( "	enovel-project ebooks - create .mobi and .epub from your manuscript" )
-	print( "	enovel-project pdf - creates a pdf from your manuscript" )
-	print( "	enovel-project html - creates a html from your manuscript" )
-	print( "	enovel-project text - creates a text file from your manuscript" )
-	print( "	enovel-project wordcount - gives you a current wordcount of your manuscript" )
+	print( "	enovel-project init		Creates the base directories and starter content")
+	print("					DANGER: this will overwrite your current content" )
+	print( "	enovel-project all 		Creates a .mobi, .epub, .pdf, .txt, and .html from your")
+	print("					manuscript then displays a wordcount" )
+	print( "	enovel-project ebooks 		Create .mobi and .epub from your manuscript" )
+	print( "	enovel-project pdf 		Creates a pdf from your manuscript" )
+
+	print( "	enovel-project mobi 		Creates a .mobi from your manuscript" )
+
+	print( "	enovel-project epub 		Creates an .epub from your manuscript" )
+
+	print( "	enovel-project html 		Creates a .html from your manuscript" )
+	print( "	enovel-project text 		Creates a .tet file from your manuscript" )
+	print( "	enovel-project rtf 		Creates a .rtf (Rich Text Format) file from your")
+	print("					manuscript" )
+	print( "	enovel-project md 		Creates a .md (MarkDown) file from your manuscript" )
+	print( "	enovel-project chapter 		Creates a new chapter template in your manuscript folder" )
+	print( "	enovel-project nc 		Alias to enovel-project chapter" )
+	print( "	enovel-project newchapter	Alias to enovel-project chapter" )
+	print( "	enovel-project wordcount	Gives you a current wordcount of your manuscript" )
+	print( "	enovel-project nano 		If your nanowrimo username and secret is in the config,")
+	print("					this will attempt to update your nanowrimo daily")
+	print("					stat automatically." )
 
 def directoryCount(path):
 	dirCount = 0
