@@ -15,6 +15,7 @@ import datetime
 import imp
 import hashlib
 import requests
+import xmltodict
 
 __author__ = "Jeffrey D. Gordon"
 __copyright__ = "Copyright 2016-2017, Jeffrey D. Gordon"
@@ -109,12 +110,20 @@ def updateNaNo():
 
         requestResult = requests.put( nanoAPIUrlUpdateWordCount, data=payload )
 
-        if requestResult.status_code == 200:
-            print("* NanoWriMo.org responded positive (status code 200). Your word might have been updated.")
-            return True
+        current_wordcount_response = requests.get( nanoAPIUrlCurrentWordCount )
+        current_wordcount = xmltodict.parse(current_wordcount_response.text)
+        # print( current_wordcount )
+
+        if int( current_wordcount["wc"]["user_wordcount"]) == theWordCount:
+            print( "* SUCCESS! NaNoWriMo count matches current count")
         else:
-            print("* NanoWriMo.org responded NEGATIVE. Your word count was not updated")
-            return False
+            print( "ERROR: NaNoWriMo count does NOT match your current count after update - check your NaNoWriMo secret and username")
+        # if requestResult.status_code == 200:
+        #     print("* NanoWriMo.org responded positive (status code 200). Your word might have been updated.")
+        #     return True
+        # else:
+        #     print("* NanoWriMo.org responded NEGATIVE. Your word count was not updated")
+        #     return False
     else:
         print("ERROR: Cannot update NaNoWriMo counts - no configuration.")
         print("* Be sure to set your nanoWriMoSecretKey and nanoWriMoUsername in your config.yml.")
