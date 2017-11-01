@@ -35,30 +35,30 @@ todaysProgress = 0
 recreateEPUBAndTempFiles = True
 
 config = dict(
-	bookName = "My Ebook",
-	bookFile = "My Ebook",
-	authorName = "Author Name",
-	copyRight = str(datetime.datetime.now().year) + " All rights reserved",
-	languageCode = "en-US",
-	publisherName = "Self Published",
-	coverImage = "",
-	nanoWriMoSecretKey = "",
-	nanoWriMoUsername = ""
+    bookName = "My Ebook",
+    bookFile = "My Ebook",
+    authorName = "Author Name",
+    copyRight = str(datetime.datetime.now().year) + " All rights reserved",
+    languageCode = "en-US",
+    publisherName = "Self Published",
+    coverImage = "",
+    nanoWriMoSecretKey = "",
+    nanoWriMoUsername = ""
 )
 
 if os.path.isfile("config.yml") == False:
-	with open('config.yml', 'w', encoding="utf8") as outfile:
-		yaml.dump(config, outfile, default_flow_style=False)
+    with open('config.yml', 'w', encoding="utf8") as outfile:
+        yaml.dump(config, outfile, default_flow_style=False)
 else:
-	config = yaml.safe_load(open("config.yml", encoding="utf8"))
+    config = yaml.safe_load(open("config.yml", encoding="utf8"))
 
 
 # To get NanoWrioSecret go to https://nanowrimo.org/api/wordcount while logged in.
 if "nanoWriMoSecretKey" not in config:
-	config["nanoWriMoSecretKey"] = ""
+    config["nanoWriMoSecretKey"] = ""
 
 if "nanoWriMoUsername" not in config:
-	config["nanoWriMoUsername"] = ""
+    config["nanoWriMoUsername"] = ""
 
 try:
     imp.find_module('numpy')
@@ -68,442 +68,444 @@ except ImportError:
     foundMatPlotLib = False
 
 if foundMatPlotLib:
-	import numpy as np
-	import matplotlib.pyplot as plt
+    import numpy as np
+    import matplotlib.pyplot as plt
 
 # Immutable Variables
-nanoAPIUrlCurrentWordCount = "https://nanowrimo.org/modules/wordcount_api/wc/" + config["nanoWriMoUsername"]
+nanoAPIUrlCurrentWordCount = "https://nanowrimo.org/wordcount_api/wc/" + config["nanoWriMoUsername"]
 nanoAPIUrlCurrentWordCountHistory = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
-nanoAPIUrlUpdateWordCount = "http://nanowrimo.org/api/wordcount"
+nanoAPIUrlUpdateWordCount = "https://nanowrimo.org/api/wordcount"
 
 def normalizeMarkDown( fileContents ):
-	# trim the contents
-	fileContents = fileContents.strip()
-	# remove existing markdown HRs
-	fileContents = fileContents.replace( "----\n", "")
-	fileContents = fileContents.replace( "\n----", "")
-	fileContents = fileContents.replace( "---\n", "")
-	fileContents = fileContents.replace( "\n---", "")
+    # trim the contents
+    fileContents = fileContents.strip()
+    # remove existing markdown HRs
+    fileContents = fileContents.replace( "----\n", "")
+    fileContents = fileContents.replace( "\n----", "")
+    fileContents = fileContents.replace( "---\n", "")
+    fileContents = fileContents.replace( "\n---", "")
 
-	# replace all triple newlines with double newlines (normalize any extras)
-	fileContents = fileContents.replace( "\n\n\n", "\n\n")
+    # replace all triple newlines with double newlines (normalize any extras)
+    fileContents = fileContents.replace( "\n\n\n", "\n\n")
 
-	return fileContents
+    return fileContents
 
 def updateNaNo():
-	if config["nanoWriMoSecretKey"] and config["nanoWriMoUsername"]:
+    if config["nanoWriMoSecretKey"] and config["nanoWriMoUsername"]:
 
-		manuscriptData = preProcess()
-		manuscriptData = normalizeMarkDown( manuscriptData )
-		theWordCount = str(len(manuscriptData.split()))
+        manuscriptData = preProcess()
+        manuscriptData = normalizeMarkDown( manuscriptData )
+        theWordCount = len(manuscriptData.split())
 
-		theHash =  str(hashlib.sha1( str.encode(config["nanoWriMoSecretKey"] + config["nanoWriMoUsername"] + theWordCount) ).hexdigest() )
+        theHash =  str(hashlib.sha1( str.encode(config["nanoWriMoSecretKey"] + config["nanoWriMoUsername"] + str(theWordCount)) ).hexdigest() )
 
-		payload = {
-			'hash': theHash,
-			'username': config["nanoWriMoUsername"],
-			'wordcount': theWordCount
-		}
-		print("* Updating NaNoWriMo update count... Connecting to " + nanoAPIUrlUpdateWordCount)
-		# print( payload )
-		requestResult = requests.put( nanoAPIUrlUpdateWordCount, data=payload )
+        payload = {
+            'hash': theHash,
+            'name': config["nanoWriMoUsername"],
+            'wordcount': theWordCount
+        }
 
-		# print(requestResult.status_code)
+        print("* Updating NaNoWriMo update count (currently " + str(theWordCount) + ")... Connecting to " + nanoAPIUrlUpdateWordCount)
 
-		if requestResult.status_code == 200:
-			print("* NanoWriMo.org responded positive")
-			return True
-		else:
-			print("* NanoWriMo.org responded NEGATIVE. Your word count was not updated")
-			return False
+        requestResult = requests.put( nanoAPIUrlUpdateWordCount, data=payload )
+
+        if requestResult.status_code == 200:
+            print("* NanoWriMo.org responded positive (status code 200). Your word might have been updated.")
+            return True
+        else:
+            print("* NanoWriMo.org responded NEGATIVE. Your word count was not updated")
+            return False
+    else:
+        print("ERROR: Cannot update NaNoWriMo counts - no configuration.")
+        print("* Be sure to set your nanoWriMoSecretKey and nanoWriMoUsername in your config.yml.")
 
 
 def preProcess(writeFile = False):
-	if os.path.isdir(exportDirectory) == False:
-		os.mkdir( exportDirectory )
-	manuscriptContents = ""
-	for root, dirs, files in sorted(os.walk( manuscriptDir )):
-		path = root.split('/')
-		for file in sorted(files):
-			if file[0] != ".":
-				with open(manuscriptDir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
-					# get file contents
-					fileContents = content_file.read()
+    if os.path.isdir(exportDirectory) == False:
+        os.mkdir( exportDirectory )
+    manuscriptContents = ""
+    for root, dirs, files in sorted(os.walk( manuscriptDir )):
+        path = root.split('/')
+        for file in sorted(files):
+            if file[0] != ".":
+                with open(manuscriptDir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
+                    # get file contents
+                    fileContents = content_file.read()
 
-					fileContents = normalizeMarkDown( fileContents )
-					# add an md HR at the end of the file
-					manuscriptContents += fileContents + "\n\n----\n\n"
-		# remove final "\n\n----\n\n"
-		if manuscriptContents.endswith("\n\n----\n\n"):
-			manuscriptContents = manuscriptContents[:-len("\n\n----\n\n")]
-			manuscriptContents += "\n\n"
+                    fileContents = normalizeMarkDown( fileContents )
+                    # add an md HR at the end of the file
+                    manuscriptContents += fileContents + "\n\n----\n\n"
+        # remove final "\n\n----\n\n"
+        if manuscriptContents.endswith("\n\n----\n\n"):
+            manuscriptContents = manuscriptContents[:-len("\n\n----\n\n")]
+            manuscriptContents += "\n\n"
 
 
-	# save contents
-	if writeFile:
-		with open("./temp_work_file.md" , 'w', encoding="utf8") as working_file:
-			working_file.write( manuscriptContents )
+    # save contents
+    if writeFile:
+        with open("./temp_work_file.md" , 'w', encoding="utf8") as working_file:
+            working_file.write( manuscriptContents )
 
-	return manuscriptContents
+    return manuscriptContents
 
 def createBookMetaData():
-	if recreateEPUBAndTempFiles == True:
-		fileContents = "---\n"
-		fileContents += "title: " + config["bookName"] + "\n"
-		fileContents += "author: " + config["authorName"] + "\n"
-		fileContents += "rights:  " + config["copyRight"] + "\n"
-		fileContents += "language: " + config["languageCode"] + "\n"
-		fileContents += "publisher: " + config["publisherName"] + "\n"
-		if "coverImage" in config and config["coverImage"] != "":
-			fileContents += "cover-image: " + config["coverImage"] + "\n"
-		fileContents += "...\n"
-		with open("./" + "00-ebook-info.txt" , 'w', encoding="utf8") as metaFile:
-			metaFile.write( fileContents )
+    if recreateEPUBAndTempFiles == True:
+        fileContents = "---\n"
+        fileContents += "title: " + config["bookName"] + "\n"
+        fileContents += "author: " + config["authorName"] + "\n"
+        fileContents += "rights:  " + config["copyRight"] + "\n"
+        fileContents += "language: " + config["languageCode"] + "\n"
+        fileContents += "publisher: " + config["publisherName"] + "\n"
+        if "coverImage" in config and config["coverImage"] != "":
+            fileContents += "cover-image: " + config["coverImage"] + "\n"
+        fileContents += "...\n"
+        with open("./" + "00-ebook-info.txt" , 'w', encoding="utf8") as metaFile:
+            metaFile.write( fileContents )
 
 def removeTempFiles():
-	if os.path.isfile("./temp_work_file.md"):
-		os.remove( "./temp_work_file.md" )
-	if os.path.isfile("./" + "00-ebook-info.txt"):
-		os.remove( "./" + "00-ebook-info.txt" )
-	tmpPDFConv = glob("tex2pdf.*")
-	for tmpDir in tmpPDFConv:
-		os.rmdir( tmpDir )
+    if os.path.isfile("./temp_work_file.md"):
+        os.remove( "./temp_work_file.md" )
+    if os.path.isfile("./" + "00-ebook-info.txt"):
+        os.remove( "./" + "00-ebook-info.txt" )
+    tmpPDFConv = glob("tex2pdf.*")
+    for tmpDir in tmpPDFConv:
+        os.rmdir( tmpDir )
 
 
 
 def saveProgress():
-	global todaysProgress
-	if os.path.isdir( progressDirectory ) == False:
-		os.mkdir( progressDirectory )
-	manuscriptData = preProcess()
-	manuscriptData = normalizeMarkDown( manuscriptData )
-	currentWordCount = len(manuscriptData.split())
-	wordCountDict = {}
-	if os.path.isfile( progressDirectory + "/progress.tsv"):
-		with open( progressDirectory + "/progress.tsv" , 'r', encoding="utf8") as content_file:
-			# get file contents
-			for line in content_file:
-				entryDate, wordCount = map(str, line.strip().split('\t') )
-				wordCountDict[entryDate] = wordCount
+    global todaysProgress
+    if os.path.isdir( progressDirectory ) == False:
+        os.mkdir( progressDirectory )
+    manuscriptData = preProcess()
+    manuscriptData = normalizeMarkDown( manuscriptData )
+    currentWordCount = len(manuscriptData.split())
+    wordCountDict = {}
+    if os.path.isfile( progressDirectory + "/progress.tsv"):
+        with open( progressDirectory + "/progress.tsv" , 'r', encoding="utf8") as content_file:
+            # get file contents
+            for line in content_file:
+                entryDate, wordCount = map(str, line.strip().split('\t') )
+                wordCountDict[entryDate] = wordCount
 
-	wordCountDict[ str( datetime.date.today())] = currentWordCount
+    wordCountDict[ str( datetime.date.today())] = currentWordCount
 
-	lastCount = 0
-	for entryDate in sorted(wordCountDict.keys()):
-		if str(datetime.date.today()) == entryDate:
-			todaysProgress = int(wordCountDict[ entryDate ]) - lastCount
-		lastCount = int(wordCountDict[ entryDate ])
+    lastCount = 0
+    for entryDate in sorted(wordCountDict.keys()):
+        if str(datetime.date.today()) == entryDate:
+            todaysProgress = int(wordCountDict[ entryDate ]) - lastCount
+        lastCount = int(wordCountDict[ entryDate ])
 
-	with open( progressDirectory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
-		for entryDate in sorted(wordCountDict.keys()):
-			content_file.write( str(entryDate) + "\t" + str(wordCountDict[entryDate]) + "\n")
+    with open( progressDirectory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
+        for entryDate in sorted(wordCountDict.keys()):
+            content_file.write( str(entryDate) + "\t" + str(wordCountDict[entryDate]) + "\n")
 
-	if foundMatPlotLib:
+    if foundMatPlotLib:
 
-		#Create Overall Progress Graph
-		graphX = []
-		graphY = []
+        #Create Overall Progress Graph
+        graphX = []
+        graphY = []
 
-		for entryDate in sorted(wordCountDict.keys()):
-			graphX.append(entryDate)
-			graphY.append( int(wordCountDict[ entryDate ]) )
+        for entryDate in sorted(wordCountDict.keys()):
+            graphX.append(entryDate)
+            graphY.append( int(wordCountDict[ entryDate ]) )
 
-		overallGraphNumCols = len(graphX)
-		overallGraphLocations = np.arange(overallGraphNumCols)  # the x locations for the groups
-		overallGraphBarWidth = 0.37       # the width of the bars
+        overallGraphNumCols = len(graphX)
+        overallGraphLocations = np.arange(overallGraphNumCols)  # the x locations for the groups
+        overallGraphBarWidth = 0.37       # the width of the bars
 
-		overallGraphFig, overallGraphAX = plt.subplots()
-		figureWidth = (len(graphX) / 10 * 3)
-		if figureWidth < 10:
-			figureWidth = 10
-		overallGraphFig.set_size_inches(figureWidth, 5)
+        overallGraphFig, overallGraphAX = plt.subplots()
+        figureWidth = (len(graphX) / 10 * 3)
+        if figureWidth < 10:
+            figureWidth = 10
+        overallGraphFig.set_size_inches(figureWidth, 5)
 
-		rects1 = overallGraphAX.bar(overallGraphLocations, graphY, overallGraphBarWidth, color='r')
+        rects1 = overallGraphAX.bar(overallGraphLocations, graphY, overallGraphBarWidth, color='r')
 
-		# add some text for labels, title and axes ticks
-		overallGraphAX.set_ylabel('Word Count')
-		overallGraphAX.set_title('Overall Word Count Progress for "' + config["bookName"] + '"' )
-		overallGraphAX.set_xticks(overallGraphLocations + overallGraphBarWidth)
-		overallGraphAX.set_xticklabels(graphX,  ha='center', rotation=90 )
+        # add some text for labels, title and axes ticks
+        overallGraphAX.set_ylabel('Word Count')
+        overallGraphAX.set_title('Overall Word Count Progress for "' + config["bookName"] + '"' )
+        overallGraphAX.set_xticks(overallGraphLocations + overallGraphBarWidth)
+        overallGraphAX.set_xticklabels(graphX,  ha='center', rotation=90 )
 
-		overallGraphRects = overallGraphAX.patches
+        overallGraphRects = overallGraphAX.patches
 
-		for overallRect, overallLabel in zip(overallGraphRects, graphY):
-		    labelHeight = overallRect.get_height()
-		    overallGraphAX.text(overallRect.get_x() + overallRect.get_width()/2, labelHeight + 10, overallLabel, ha='center', va='bottom', rotation=90 )
+        for overallRect, overallLabel in zip(overallGraphRects, graphY):
+            labelHeight = overallRect.get_height()
+            overallGraphAX.text(overallRect.get_x() + overallRect.get_width()/2, labelHeight + 10, overallLabel, ha='center', va='bottom', rotation=90 )
 
-		plt.savefig(progressDirectory + "/progress-overall.png", bbox_inches='tight', dpi=300)
+        plt.savefig(progressDirectory + "/progress-overall.png", bbox_inches='tight', dpi=300)
 
-		overallGraphFig.clf()
-		plt.clf()
+        overallGraphFig.clf()
+        plt.clf()
 
-		#Create Daily Progress Graph
-		graphX = []
-		graphY = []
-
-
-
-		lastCount = 0
-		for entryDate in sorted(wordCountDict.keys()):
-			graphX.append(entryDate)
-			graphY.append( int(wordCountDict[ entryDate ]) - lastCount )
-			lastCount = int(wordCountDict[ entryDate ])
-
-		dailyGraphNumCols = len(graphX)
-		dailyGraphLocations = np.arange(dailyGraphNumCols)  # the x locations for the groups
-		dailyGraphWidth = 0.38 # the width of the bars
-
-		dailyGraphFig, dailyGraphAX = plt.subplots()
-		rects1 = dailyGraphAX.bar(dailyGraphLocations, graphY, dailyGraphWidth, color='r')
-
-		figureWidth = (len(graphX) / 10 * 3)
-		if figureWidth < 10:
-			figureWidth = 10
-		dailyGraphFig.set_size_inches( figureWidth, 5)
-
-		# add some text for labels, title and axes ticks
-		dailyGraphAX.set_ylabel('Word Count')
-		dailyGraphAX.set_title('Daily Word Count Progress for "' + config["bookName"] + '"' )
-		dailyGraphAX.set_xticks( dailyGraphLocations + dailyGraphWidth )
-		dailyGraphAX.set_xticklabels(graphX,  ha='center', rotation=90 )
-
-		dailyGraphRects = dailyGraphAX.patches
-
-		for dailyRect, dailyLabel in zip(dailyGraphRects, graphY):
-		    labelHeight = dailyRect.get_height()
-		    dailyGraphAX.text(dailyRect.get_x() + dailyRect.get_width()/2, labelHeight + 10, dailyLabel, ha='center', va='bottom', rotation=90 )
+        #Create Daily Progress Graph
+        graphX = []
+        graphY = []
 
 
-		plt.savefig(progressDirectory + "/progress-daily.png", bbox_inches='tight', dpi=300)
 
-		dailyGraphFig.clf()
-		plt.clf()
+        lastCount = 0
+        for entryDate in sorted(wordCountDict.keys()):
+            graphX.append(entryDate)
+            graphY.append( int(wordCountDict[ entryDate ]) - lastCount )
+            lastCount = int(wordCountDict[ entryDate ])
+
+        dailyGraphNumCols = len(graphX)
+        dailyGraphLocations = np.arange(dailyGraphNumCols)  # the x locations for the groups
+        dailyGraphWidth = 0.38 # the width of the bars
+
+        dailyGraphFig, dailyGraphAX = plt.subplots()
+        rects1 = dailyGraphAX.bar(dailyGraphLocations, graphY, dailyGraphWidth, color='r')
+
+        figureWidth = (len(graphX) / 10 * 3)
+        if figureWidth < 10:
+            figureWidth = 10
+        dailyGraphFig.set_size_inches( figureWidth, 5)
+
+        # add some text for labels, title and axes ticks
+        dailyGraphAX.set_ylabel('Word Count')
+        dailyGraphAX.set_title('Daily Word Count Progress for "' + config["bookName"] + '"' )
+        dailyGraphAX.set_xticks( dailyGraphLocations + dailyGraphWidth )
+        dailyGraphAX.set_xticklabels(graphX,  ha='center', rotation=90 )
+
+        dailyGraphRects = dailyGraphAX.patches
+
+        for dailyRect, dailyLabel in zip(dailyGraphRects, graphY):
+            labelHeight = dailyRect.get_height()
+            dailyGraphAX.text(dailyRect.get_x() + dailyRect.get_width()/2, labelHeight + 10, dailyLabel, ha='center', va='bottom', rotation=90 )
+
+
+        plt.savefig(progressDirectory + "/progress-daily.png", bbox_inches='tight', dpi=300)
+
+        dailyGraphFig.clf()
+        plt.clf()
 
 def printHelp():
-	print( "Usage:" )
-	print( "	enovel-project init		Creates the base directories and starter content")
-	print("					DANGER: this will overwrite your current content" )
-	print( "	enovel-project all 		Creates a .mobi, .epub, .pdf, .txt, and .html from your")
-	print("					manuscript then displays a wordcount" )
-	print( "	enovel-project ebooks 		Create .mobi and .epub from your manuscript" )
-	print( "	enovel-project pdf 		Creates a pdf from your manuscript" )
+    print( "Usage:" )
+    print( "    enovel-project init        Creates the base directories and starter content")
+    print("                    DANGER: this will overwrite your current content" )
+    print( "    enovel-project all         Creates a .mobi, .epub, .pdf, .txt, and .html from your")
+    print("                    manuscript then displays a wordcount" )
+    print( "    enovel-project ebooks         Create .mobi and .epub from your manuscript" )
+    print( "    enovel-project pdf         Creates a pdf from your manuscript" )
 
-	print( "	enovel-project mobi 		Creates a .mobi from your manuscript" )
+    print( "    enovel-project mobi         Creates a .mobi from your manuscript" )
 
-	print( "	enovel-project epub 		Creates an .epub from your manuscript" )
+    print( "    enovel-project epub         Creates an .epub from your manuscript" )
 
-	print( "	enovel-project html 		Creates a .html from your manuscript" )
-	print( "	enovel-project text 		Creates a .tet file from your manuscript" )
-	print( "	enovel-project rtf 		Creates a .rtf (Rich Text Format) file from your")
-	print("					manuscript" )
-	print( "	enovel-project md 		Creates a .md (MarkDown) file from your manuscript" )
-	print( "	enovel-project chapter 		Creates a new chapter template in your manuscript folder" )
-	print( "	enovel-project nc 		Alias to enovel-project chapter" )
-	print( "	enovel-project newchapter	Alias to enovel-project chapter" )
-	print( "	enovel-project wordcount	Gives you a current wordcount of your manuscript" )
-	print( "	enovel-project nano 		If your nanowrimo username and secret is in the config,")
-	print("					this will attempt to update your nanowrimo daily")
-	print("					stat automatically." )
+    print( "    enovel-project html         Creates a .html from your manuscript" )
+    print( "    enovel-project text         Creates a .tet file from your manuscript" )
+    print( "    enovel-project rtf         Creates a .rtf (Rich Text Format) file from your")
+    print("                    manuscript" )
+    print( "    enovel-project md         Creates a .md (MarkDown) file from your manuscript" )
+    print( "    enovel-project chapter         Creates a new chapter template in your manuscript folder" )
+    print( "    enovel-project nc         Alias to enovel-project chapter" )
+    print( "    enovel-project newchapter    Alias to enovel-project chapter" )
+    print( "    enovel-project wordcount    Gives you a current wordcount of your manuscript" )
+    print( "    enovel-project nano         If your nanowrimo username and secret is in the config,")
+    print("                    this will attempt to update your nanowrimo daily")
+    print("                    stat automatically." )
 
 def directoryCount(path):
-	dirCount = 0
-	for root, dirs, files in os.walk(path):
-		dirCount += len(dirs)
+    dirCount = 0
+    for root, dirs, files in os.walk(path):
+        dirCount += len(dirs)
 
-	return dirCount
+    return dirCount
 
 def newChapter( chapterNumber = 0 ):
-	if chapterNumber == 1:
-		chapterName = "Your first Chapter"
-	else:
-		chapterName = "New Chapter"
+    if chapterNumber == 1:
+        chapterName = "Your first Chapter"
+    else:
+        chapterName = "New Chapter"
 
-	if os.path.isdir("./Manuscript") == False:
-		os.mkdir( "./Manuscript" )
+    if os.path.isdir("./Manuscript") == False:
+        os.mkdir( "./Manuscript" )
 
-	if chapterNumber == 0:
-		chapterNumber = directoryCount( "./Manuscript" ) + 1
+    if chapterNumber == 0:
+        chapterNumber = directoryCount( "./Manuscript" ) + 1
 
 
-	if os.path.isdir("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/") == False:
-		os.mkdir( "./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/" )
+    if os.path.isdir("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/") == False:
+        os.mkdir( "./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/" )
 
-	chapterHeading = "\\\\newpage\n\n"
-	chapterHeading += "#Chapter " + str(chapterNumber) + " - " + chapterName + "\n\n"
-	if os.path.isfile("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/00 - Chapter Header.md") == False:
-		with open("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
-			chapterHeaderFile.write( chapterHeading )
+    chapterHeading = "\\\\newpage\n\n"
+    chapterHeading += "# Chapter " + str(chapterNumber) + " - " + chapterName + "\n\n"
+    if os.path.isfile("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/00 - Chapter Header.md") == False:
+        with open("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/00 - Chapter Header.md" , 'w', encoding="utf8") as chapterHeaderFile:
+            chapterHeaderFile.write( chapterHeading )
 
-	firstScene = "Your book starts here!\n\n"
-	firstScene += "Your second paragraph\n"
+    firstScene = "Your book starts here!\n\n"
+    firstScene += "Your second paragraph\n"
 
-	if os.path.isfile("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/01 - Setting the stage.md") == False:
-		with open("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
-			firstSceneFile.write( firstScene )
+    if os.path.isfile("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/01 - Setting the stage.md") == False:
+        with open("./Manuscript/Chapter " + str(chapterNumber) + " - " + chapterName + "/01 - Setting the stage.md" , 'w', encoding="utf8") as firstSceneFile:
+            firstSceneFile.write( firstScene )
 
 def initProject():
-	newChapter(1)
+    newChapter(1)
 
-	if os.path.isdir("./Bios") == False:
-		os.mkdir( "./Bios" )
-	if os.path.isdir("./Scenes") == False:
-		os.mkdir( "./Scenes" )
-	if os.path.isdir("./Notes") == False:
-		os.mkdir( "./Notes" )
-	if os.path.isdir(exportDirectory) == False:
-		os.mkdir( exportDirectory )
+    if os.path.isdir("./Bios") == False:
+        os.mkdir( "./Bios" )
+    if os.path.isdir("./Scenes") == False:
+        os.mkdir( "./Scenes" )
+    if os.path.isdir("./Notes") == False:
+        os.mkdir( "./Notes" )
+    if os.path.isdir(exportDirectory) == False:
+        os.mkdir( exportDirectory )
 
-	exampleCharacter = "#New Character Name\n\n##Role\n\nCharacter's role in the story\n\n##Description\n\nPhysical and mental description of the character."
-	if os.path.isfile("./Bios/Example Character.md") == False:
-		with open("./Bios/Example Character.md" , 'w', encoding="utf8") as exampleBioFile:
-			exampleBioFile.write( exampleCharacter )
+    exampleCharacter = "# New Character Name\n\n## Role\n\nCharacter's role in the story\n\n## Description\n\nPhysical and mental description of the character."
+    if os.path.isfile("./Bios/Example Character.md") == False:
+        with open("./Bios/Example Character.md" , 'w', encoding="utf8") as exampleBioFile:
+            exampleBioFile.write( exampleCharacter )
 
-	exampleScene = "#New Location Name\n\n##Role\n\nScene's's role in the story\n\n##Description\n\nPhysical and mental description of the scene."
-	if os.path.isfile("./Scenes/Example Scene.md") == False:
-		with open("./Scenes/Example Scene.md" , 'w', encoding="utf8") as exampleSceneFile:
-			exampleSceneFile.write( exampleScene )
+    exampleScene = "# New Location Name\n\n## Role\n\nScene's's role in the story\n\n## Description\n\nPhysical and mental description of the scene."
+    if os.path.isfile("./Scenes/Example Scene.md") == False:
+        with open("./Scenes/Example Scene.md" , 'w', encoding="utf8") as exampleSceneFile:
+            exampleSceneFile.write( exampleScene )
 
 
 def createEPUB():
-	global recreateEPUBAndTempFiles
-	#Requires SYSCALL to pandoc
-	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
-		createBookMetaData()
-		preProcess( writeFile = True )
-		os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-		recreateEPUBAndTempFiles = False
-		print("* " + exportDirectory + "/" + config["bookFile"] + ".epub created")
+    global recreateEPUBAndTempFiles
+    #Requires SYSCALL to pandoc
+    if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
+        createBookMetaData()
+        preProcess( writeFile = True )
+        os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+        recreateEPUBAndTempFiles = False
+        print("* " + exportDirectory + "/" + config["bookFile"] + ".epub created")
 
 def createTXT():
-	#Requires SYSCALL to pandoc
-	os.system("pandoc -t plain \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".txt created")
+    #Requires SYSCALL to pandoc
+    os.system("pandoc -t plain \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" -o \"" + exportDirectory + "/" + config["bookFile"] + ".txt\"")
+    print("* " + exportDirectory + "/" + config["bookFile"] + ".txt created")
 
 def createHTML():
-	#Requires SYSCALL to pandoc
-	createBookMetaData()
-	preProcess( writeFile = True )
-	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".html created")
+    #Requires SYSCALL to pandoc
+    createBookMetaData()
+    preProcess( writeFile = True )
+    os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    print("* " + exportDirectory + "/" + config["bookFile"] + ".html created")
 
 
 def createMOBI():
-	#Requires SYSCALL to pandoc
-	#Requires SYSCALL to calibre tools
-	createEPUB()
-	os.system("ebook-convert \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".mobi created")
-	if os.path.isfile( config["bookFile"] + ".convert.log" ):
-		os.remove( config["bookFile"] + ".convert.log" )
+    #Requires SYSCALL to pandoc
+    #Requires SYSCALL to calibre tools
+    createEPUB()
+    os.system("ebook-convert \"" + exportDirectory + "/" + config["bookFile"] + ".epub\" \"" + exportDirectory + "/" + config["bookFile"] + ".mobi\" > \"" + config["bookFile"] + ".convert.log\"")
+    print("* " + exportDirectory + "/" + config["bookFile"] + ".mobi created")
+    if os.path.isfile( config["bookFile"] + ".convert.log" ):
+        os.remove( config["bookFile"] + ".convert.log" )
 
 def createMD():
-	global recreateEPUBAndTempFiles
-	#Requires SYSCALL to pandoc
-	if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
-		createBookMetaData()
-		preProcess( writeFile = True )
-		copyfile( "./temp_work_file.md", exportDirectory + "/" + config["bookFile"] + ".md" )
-		print("* " + exportDirectory + "/" + config["bookFile"] + ".md created")
-		recreateEPUBAndTempFiles = False
+    global recreateEPUBAndTempFiles
+    #Requires SYSCALL to pandoc
+    if os.path.isfile('./" + exportDirectory + "/" + config["bookFile"] + ".epub') == False and recreateEPUBAndTempFiles == True:
+        createBookMetaData()
+        preProcess( writeFile = True )
+        copyfile( "./temp_work_file.md", exportDirectory + "/" + config["bookFile"] + ".md" )
+        print("* " + exportDirectory + "/" + config["bookFile"] + ".md created")
+        recreateEPUBAndTempFiles = False
 
 
 
 
 def createPDF():
-	#Requires SYSCALL to pandoc
-	createBookMetaData()
-	preProcess( writeFile = True )
-	os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".pdf created")
+    #Requires SYSCALL to pandoc
+    createBookMetaData()
+    preProcess( writeFile = True )
+    os.system("pandoc -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    print("* " + exportDirectory + "/" + config["bookFile"] + ".pdf created")
 
 def createDOC():
-	#Requires SYSCALL to pandoc
-	createBookMetaData()
-	preProcess( writeFile = True )
-	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".doc created")
+    #Requires SYSCALL to pandoc
+    createBookMetaData()
+    preProcess( writeFile = True )
+    os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    print("* " + exportDirectory + "/" + config["bookFile"] + ".doc created")
 
 def createDOCX():
-	#Requires SYSCALL to pandoc
-	createBookMetaData()
-	preProcess( writeFile = True )
-	os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-	print("* " + exportDirectory + "/" + config["bookFile"] + ".docx created")
+    #Requires SYSCALL to pandoc
+    createBookMetaData()
+    preProcess( writeFile = True )
+    os.system("pandoc -s -S -o \"" + exportDirectory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    print("* " + exportDirectory + "/" + config["bookFile"] + ".docx created")
 
 
 def wordCount():
-	manuscriptData = preProcess()
-	manuscriptData = normalizeMarkDown( manuscriptData )
-	print("    Project Wordcount: " + str(len(manuscriptData.split())))
-	print("     Today's Progress: " + str(todaysProgress) )
+    manuscriptData = preProcess()
+    manuscriptData = normalizeMarkDown( manuscriptData )
+    print("    Project Wordcount: " + str(len(manuscriptData.split())))
+    print("     Today's Progress: " + str(todaysProgress) )
 
 if len(sys.argv) > 1:
-	for arg in sys.argv:
-		if arg == "init":
-			initProject()
-		elif arg == "all":
-			saveProgress()
-			createEPUB()
-			createMOBI()
-			createHTML()
-			createTXT()
-			createPDF()
-			createMD()
-			createDOC()
-			createDOCX()
-			wordCount()
-		elif arg == "ebooks":
-			saveProgress()
-			createEPUB()
-			createMOBI()
-		elif arg == "mobi":
-			saveProgress()
-			createMOBI()
-		elif arg == "epub":
-			saveProgress()
-			createEPUB()
-		elif arg == "pdf":
-			saveProgress()
-			createPDF()
-		elif arg == "doc":
-			saveProgress()
-			createDOC()
-		elif arg == "docx":
-			saveProgress()
-			createDOCX()
-		elif arg == "md":
-			saveProgress()
-			createMD()
-		elif arg == "markdown":
-			saveProgress()
-			createMD()
-		elif arg == "html":
-			saveProgress()
-			createHTML()
-		elif arg == "txt":
-			saveProgress()
-			createTXT()
-		elif arg == "text":
-			saveProgress()
-			createTXT()
-		elif arg == "wordcount":
-			# saveProgress()
-			wordCount()
-		elif arg == "nano":
-			updateNaNo()
-		elif arg == "nc":
-			newChapter()
-		elif arg == "newchapter":
-			newChapter()
-		elif arg == "chapter":
-			newChapter()
-		elif arg == __file__:
-			# Do Nothing
-			pass
-		else:
-			print("Warning unknown argument '" + arg + "'");
-			printHelp()
-	removeTempFiles()
+    for arg in sys.argv:
+        if arg == "init":
+            initProject()
+        elif arg == "all":
+            saveProgress()
+            createEPUB()
+            createMOBI()
+            createHTML()
+            createTXT()
+            createPDF()
+            createMD()
+            createDOC()
+            createDOCX()
+            wordCount()
+        elif arg == "ebooks":
+            saveProgress()
+            createEPUB()
+            createMOBI()
+        elif arg == "mobi":
+            saveProgress()
+            createMOBI()
+        elif arg == "epub":
+            saveProgress()
+            createEPUB()
+        elif arg == "pdf":
+            saveProgress()
+            createPDF()
+        elif arg == "doc":
+            saveProgress()
+            createDOC()
+        elif arg == "docx":
+            saveProgress()
+            createDOCX()
+        elif arg == "md":
+            saveProgress()
+            createMD()
+        elif arg == "markdown":
+            saveProgress()
+            createMD()
+        elif arg == "html":
+            saveProgress()
+            createHTML()
+        elif arg == "txt":
+            saveProgress()
+            createTXT()
+        elif arg == "text":
+            saveProgress()
+            createTXT()
+        elif arg == "wordcount":
+            # saveProgress()
+            wordCount()
+        elif arg == "nano":
+            updateNaNo()
+        elif arg == "nc":
+            newChapter()
+        elif arg == "newchapter":
+            newChapter()
+        elif arg == "chapter":
+            newChapter()
+        elif arg == __file__:
+            # Do Nothing
+            pass
+        else:
+            print("Warning unknown argument '" + arg + "'");
+            printHelp()
+    removeTempFiles()
 
 else:
-	printHelp()
+    printHelp()
