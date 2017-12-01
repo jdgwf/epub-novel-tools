@@ -164,6 +164,8 @@ def create_book_metadata():
         file_contents += "author: " + config["authorName"] + "\n"
         file_contents += "rights:  " + config["copyRight"] + "\n"
         file_contents += "language: " + config["languageCode"] + "\n"
+        file_contents += "geometry: margin=3cm\n"
+        file_contents += "fontsize: 12pt\n"
         file_contents += "publisher: " + config["publisherName"] + "\n"
         if "coverImage" in config and config["coverImage"] != "":
             file_contents += "cover-image: " + config["coverImage"] + "\n"
@@ -426,7 +428,7 @@ def create_pdf():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -V fontsize=12pt -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".pdf created")
 
 def create_doc():
@@ -440,7 +442,7 @@ def create_docx():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
 
 
