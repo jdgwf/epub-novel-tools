@@ -442,7 +442,7 @@ def create_docx():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-\" \"temp_work_file.md\"")
+    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
 
 
