@@ -31,6 +31,8 @@ export_directory = "./Exports"
 manuscript_dir = "./Manuscript"
 progressDirectory = "./Progress"
 
+chapters_export_directory = export_directory + "/Chapters"
+
 # Initial Config - this will create a config.yml file to modify
 todaysProgress = 0
 recreate_epub_and_temp_files = True
@@ -44,7 +46,8 @@ config = dict(
     publisherName = "Self Published",
     coverImage = "",
     nanoWriMoSecretKey = "",
-    nanoWriMoUsername = ""
+    nanoWriMoUsername = "",
+    exportPerChapter = False
 )
 
 if os.path.isfile("config.yml") == False:
@@ -60,6 +63,14 @@ if "nanoWriMoSecretKey" not in config:
 
 if "nanoWriMoUsername" not in config:
     config["nanoWriMoUsername"] = ""
+
+if "exportPerChapter" not in config:
+    config["exportPerChapter"] = False
+
+if config["exportPerChapter"]:
+    config["exportPerChapter"] = True
+else:
+    config["exportPerChapter"] = False
 
 try:
     imp.find_module('numpy')
@@ -129,14 +140,23 @@ def updateNaNo():
         print("* Be sure to set your nanoWriMoSecretKey and nanoWriMoUsername in your config.yml.")
 
 
+md_chapter_contents = {}
 def pre_process(writeFile = False):
     if os.path.isdir(export_directory) == False:
         os.mkdir( export_directory )
+    if config["exportPerChapter"]:
+        if os.path.isdir(chapters_export_directory) == False:
+            os.mkdir( chapters_export_directory )
     manuscript_contents = ""
+    global md_chapter_contents
+    md_chapter_contents = {}
     for root, dirs, files in sorted(os.walk( manuscript_dir )):
         path = root.split('/')
         for file in sorted(files):
             if file[0] != ".":
+
+                if os.path.basename(root) not in md_chapter_contents:
+                    md_chapter_contents[ os.path.basename(root) ] = ""
                 with open(manuscript_dir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
                     # get file contents
                     file_contents = content_file.read()
@@ -144,16 +164,28 @@ def pre_process(writeFile = False):
                     file_contents = normalize_markdown( file_contents )
                     # add an md HR at the end of the file
                     manuscript_contents += file_contents + "\n\n----\n\n"
+                    md_chapter_contents[ os.path.basename(root) ] += file_contents + "\n\n----\n\n"
+            if config["exportPerChapter"]:
+                for chapter in md_chapter_contents:
+                    if md_chapter_contents[ chapter ].endswith("\n\n----\n\n"):
+                        md_chapter_contents[ chapter ] = md_chapter_contents[ chapter ][:-len("\n\n----\n\n")]
+                        md_chapter_contents[ chapter ] += "\n\n"
+
         # remove final "\n\n----\n\n"
         if manuscript_contents.endswith("\n\n----\n\n"):
             manuscript_contents = manuscript_contents[:-len("\n\n----\n\n")]
             manuscript_contents += "\n\n"
 
 
+
     # save contents
     if writeFile:
         with open("./temp_work_file.md" , 'w', encoding="utf8") as working_file:
             working_file.write( manuscript_contents )
+        if config["exportPerChapter"]:
+            for chapter in md_chapter_contents:
+                with open("./temp_work_file_" + chapter + ".md" , 'w', encoding="utf8") as working_file:
+                    working_file.write( md_chapter_contents[ chapter ] )
 
     return manuscript_contents
 
@@ -181,6 +213,9 @@ def remove_temp_files():
     tmp_pdf_conv = glob("tex2pdf.*")
     for tmp_dir in tmp_pdf_conv:
         os.rmdir( tmp_dir )
+    for chapter in md_chapter_contents:
+        if os.path.isfile("./temp_work_file_" + chapter + ".md"):
+            os.remove( "./temp_work_file_" + chapter + ".md" )
 
 
 
@@ -401,6 +436,13 @@ def create_html():
     os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".html created")
 
+    if config["exportPerChapter"]:
+        if os.path.isdir(chapters_export_directory + "/html") == False:
+            os.mkdir( chapters_export_directory  + "/html")
+        for chapter in md_chapter_contents:
+            os.system("pandoc -s -S -o \"" + chapters_export_directory + "/html/" + chapter + ".html\" \"temp_work_file_" + chapter + ".md\"")
+        print("* Exported HTML Chapters created in " + chapters_export_directory + "/html")
+
 
 def create_mobi():
     #Requires SYSCALL to pandoc
@@ -420,8 +462,6 @@ def create_md():
         copyfile( "./temp_work_file.md", export_directory + "/" + config["bookFile"] + ".md" )
         print("* " + export_directory + "/" + config["bookFile"] + ".md created")
         recreate_epub_and_temp_files = False
-
-
 
 
 def create_pdf():
@@ -445,6 +485,13 @@ def create_docx():
     os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
 
+def create_odt():
+    #Requires SYSCALL to pandoc
+    create_book_metadata()
+    pre_process( writeFile = True )
+    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    print("* " + export_directory + "/" + config["bookFile"] + ".odt created")
+
 
 def word_count():
     manuscript_data = pre_process()
@@ -466,6 +513,7 @@ if len(sys.argv) > 1:
             create_md()
             create_doc()
             create_docx()
+            create_odt()
             word_count()
         elif arg == "ebooks":
             save_progress()
@@ -486,6 +534,9 @@ if len(sys.argv) > 1:
         elif arg == "docx":
             save_progress()
             create_docx()
+        elif arg == "odt":
+            save_progress()
+            create_odt()
         elif arg == "md":
             save_progress()
             create_md()
