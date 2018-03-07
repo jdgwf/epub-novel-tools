@@ -26,15 +26,16 @@ __maintainer__ = "Jeffrey D. Gordon"
 __email__ = "jeff@jdgwf.com"
 __status__ = "Development"
 
+
 # Configurable Options (not really recommended)
 export_directory = "./Exports"
 manuscript_dir = "./Manuscript"
-progressDirectory = "./Progress"
+progress_directory = "./Progress"
 
-chapters_export_directory = export_directory + "/Chapters"
+default_pdf_font_size = "12pt" # latex only supports 10pt, 11pt, and 12pt
 
 # Initial Config - this will create a config.yml file to modify
-todaysProgress = 0
+todays_progress = 0
 recreate_epub_and_temp_files = True
 
 config = dict(
@@ -44,10 +45,10 @@ config = dict(
     copyRight = str(datetime.datetime.now().year) + " All rights reserved",
     languageCode = "en-US",
     publisherName = "Self Published",
+    pdfFontSize = default_pdf_font_size,
     coverImage = "",
     nanoWriMoSecretKey = "",
-    nanoWriMoUsername = "",
-    exportPerChapter = False
+    nanoWriMoUsername = ""
 )
 
 if os.path.isfile("config.yml") == False:
@@ -64,13 +65,8 @@ if "nanoWriMoSecretKey" not in config:
 if "nanoWriMoUsername" not in config:
     config["nanoWriMoUsername"] = ""
 
-if "exportPerChapter" not in config:
-    config["exportPerChapter"] = False
-
-if config["exportPerChapter"]:
-    config["exportPerChapter"] = True
-else:
-    config["exportPerChapter"] = False
+if "pdfFontSize" not in config:
+    config["pdfFontSize"] = default_pdf_font_size
 
 try:
     imp.find_module('numpy')
@@ -140,23 +136,14 @@ def updateNaNo():
         print("* Be sure to set your nanoWriMoSecretKey and nanoWriMoUsername in your config.yml.")
 
 
-md_chapter_contents = {}
 def pre_process(writeFile = False):
     if os.path.isdir(export_directory) == False:
         os.mkdir( export_directory )
-    if config["exportPerChapter"]:
-        if os.path.isdir(chapters_export_directory) == False:
-            os.mkdir( chapters_export_directory )
     manuscript_contents = ""
-    global md_chapter_contents
-    md_chapter_contents = {}
     for root, dirs, files in sorted(os.walk( manuscript_dir )):
         path = root.split('/')
         for file in sorted(files):
             if file[0] != ".":
-
-                if os.path.basename(root) not in md_chapter_contents:
-                    md_chapter_contents[ os.path.basename(root) ] = ""
                 with open(manuscript_dir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
                     # get file contents
                     file_contents = content_file.read()
@@ -164,28 +151,16 @@ def pre_process(writeFile = False):
                     file_contents = normalize_markdown( file_contents )
                     # add an md HR at the end of the file
                     manuscript_contents += file_contents + "\n\n----\n\n"
-                    md_chapter_contents[ os.path.basename(root) ] += file_contents + "\n\n----\n\n"
-            if config["exportPerChapter"]:
-                for chapter in md_chapter_contents:
-                    if md_chapter_contents[ chapter ].endswith("\n\n----\n\n"):
-                        md_chapter_contents[ chapter ] = md_chapter_contents[ chapter ][:-len("\n\n----\n\n")]
-                        md_chapter_contents[ chapter ] += "\n\n"
-
         # remove final "\n\n----\n\n"
         if manuscript_contents.endswith("\n\n----\n\n"):
             manuscript_contents = manuscript_contents[:-len("\n\n----\n\n")]
             manuscript_contents += "\n\n"
 
 
-
     # save contents
     if writeFile:
         with open("./temp_work_file.md" , 'w', encoding="utf8") as working_file:
             working_file.write( manuscript_contents )
-        if config["exportPerChapter"]:
-            for chapter in md_chapter_contents:
-                with open("./temp_work_file_" + chapter + ".md" , 'w', encoding="utf8") as working_file:
-                    working_file.write( md_chapter_contents[ chapter ] )
 
     return manuscript_contents
 
@@ -197,7 +172,7 @@ def create_book_metadata():
         file_contents += "rights:  " + config["copyRight"] + "\n"
         file_contents += "language: " + config["languageCode"] + "\n"
         file_contents += "geometry: margin=3cm\n"
-        file_contents += "fontsize: 12pt\n"
+        file_contents += "fontsize: " + config["pdfFontSize"] + "\n"
         file_contents += "publisher: " + config["publisherName"] + "\n"
         if "coverImage" in config and config["coverImage"] != "":
             file_contents += "cover-image: " + config["coverImage"] + "\n"
@@ -213,22 +188,19 @@ def remove_temp_files():
     tmp_pdf_conv = glob("tex2pdf.*")
     for tmp_dir in tmp_pdf_conv:
         os.rmdir( tmp_dir )
-    for chapter in md_chapter_contents:
-        if os.path.isfile("./temp_work_file_" + chapter + ".md"):
-            os.remove( "./temp_work_file_" + chapter + ".md" )
 
 
 
 def save_progress():
-    global todaysProgress
-    if os.path.isdir( progressDirectory ) == False:
-        os.mkdir( progressDirectory )
+    global todays_progress
+    if os.path.isdir( progress_directory ) == False:
+        os.mkdir( progress_directory )
     manuscript_data = pre_process()
     manuscript_data = normalize_markdown( manuscript_data )
     currentword_count = len(manuscript_data.split())
     word_count_dict = {}
-    if os.path.isfile( progressDirectory + "/progress.tsv"):
-        with open( progressDirectory + "/progress.tsv" , 'r', encoding="utf8") as content_file:
+    if os.path.isfile( progress_directory + "/progress.tsv"):
+        with open( progress_directory + "/progress.tsv" , 'r', encoding="utf8") as content_file:
             # get file contents
             for line in content_file:
                 entryDate, word_count = map(str, line.strip().split('\t') )
@@ -239,10 +211,10 @@ def save_progress():
     lastCount = 0
     for entryDate in sorted(word_count_dict.keys()):
         if str(datetime.date.today()) == entryDate:
-            todaysProgress = int(word_count_dict[ entryDate ]) - lastCount
+            todays_progress = int(word_count_dict[ entryDate ]) - lastCount
         lastCount = int(word_count_dict[ entryDate ])
 
-    with open( progressDirectory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
+    with open( progress_directory + "/progress.tsv" , 'w', encoding="utf8") as content_file:
         for entryDate in sorted(word_count_dict.keys()):
             content_file.write( str(entryDate) + "\t" + str(word_count_dict[entryDate]) + "\n")
 
@@ -280,7 +252,7 @@ def save_progress():
             labelHeight = overallRect.get_height()
             overallGraphAX.text(overallRect.get_x() + overallRect.get_width()/2, labelHeight + 10, overallLabel, ha='center', va='bottom', rotation=90 )
 
-        plt.savefig(progressDirectory + "/progress-overall.png", bbox_inches='tight', dpi=300)
+        plt.savefig(progress_directory + "/progress-overall.png", bbox_inches='tight', dpi=300)
 
         overallGraphFig.clf()
         plt.clf()
@@ -322,7 +294,7 @@ def save_progress():
             dailyGraphAX.text(dailyRect.get_x() + dailyRect.get_width()/2, labelHeight + 10, dailyLabel, ha='center', va='bottom', rotation=90 )
 
 
-        plt.savefig(progressDirectory + "/progress-daily.png", bbox_inches='tight', dpi=300)
+        plt.savefig(progress_directory + "/progress-daily.png", bbox_inches='tight', dpi=300)
 
         dailyGraphFig.clf()
         plt.clf()
@@ -391,26 +363,28 @@ def newChapter( chapter_number = 0 ):
 
     print("* Added new chapter directory: " + "Chapter " + str(chapter_number) + " - " + chapter_name + "")
 
-def initProject():
+def init_project():
     newChapter(1)
 
-    if os.path.isdir("./Bios") == False:
-        os.mkdir( "./Bios" )
-    if os.path.isdir("./Scenes") == False:
-        os.mkdir( "./Scenes" )
+    if os.path.isdir("./People") == False:
+        os.mkdir( "./People" )
+    if os.path.isdir("./Places") == False:
+        os.mkdir( "./Places" )
+    if os.path.isdir("./Things") == False:
+        os.mkdir( "./Things" )
     if os.path.isdir("./Notes") == False:
         os.mkdir( "./Notes" )
     if os.path.isdir(export_directory) == False:
         os.mkdir( export_directory )
 
     exampleCharacter = "# New Character Name\n\n## Role\n\nCharacter's role in the story\n\n## Description\n\nPhysical and mental description of the character."
-    if os.path.isfile("./Bios/Example Character.md") == False:
-        with open("./Bios/Example Character.md" , 'w', encoding="utf8") as example_bio_file:
+    if os.path.isfile("./People/Example Character.md") == False:
+        with open("./People/Example Character.md" , 'w', encoding="utf8") as example_bio_file:
             example_bio_file.write( exampleCharacter )
 
     exampleScene = "# New Location Name\n\n## Role\n\nScene's's role in the story\n\n## Description\n\nPhysical and mental description of the scene."
-    if os.path.isfile("./Scenes/Example Scene.md") == False:
-        with open("./Scenes/Example Scene.md" , 'w', encoding="utf8") as example_scene_file:
+    if os.path.isfile("./Places/Example Scene.md") == False:
+        with open("./Places/Example Scene.md" , 'w', encoding="utf8") as example_scene_file:
             example_scene_file.write( exampleScene )
 
 
@@ -436,13 +410,6 @@ def create_html():
     os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".html created")
 
-    if config["exportPerChapter"]:
-        if os.path.isdir(chapters_export_directory + "/html") == False:
-            os.mkdir( chapters_export_directory  + "/html")
-        for chapter in md_chapter_contents:
-            os.system("pandoc -s -S -o \"" + chapters_export_directory + "/html/" + chapter + ".html\" \"temp_work_file_" + chapter + ".md\"")
-        print("* Exported HTML Chapters created in " + chapters_export_directory + "/html")
-
 
 def create_mobi():
     #Requires SYSCALL to pandoc
@@ -464,11 +431,14 @@ def create_md():
         recreate_epub_and_temp_files = False
 
 
+
+
 def create_pdf():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -V fontsize=12pt -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".pdf created")
 
 def create_doc():
@@ -497,12 +467,12 @@ def word_count():
     manuscript_data = pre_process()
     manuscript_data = normalize_markdown( manuscript_data )
     print("    Project word_count: " + str(len(manuscript_data.split())))
-    print("     Today's Progress: " + str(todaysProgress) )
+    print("     Today's Progress: " + str(todays_progress) )
 
 if len(sys.argv) > 1:
     for arg in sys.argv:
         if arg == "init":
-            initProject()
+            init_project()
         elif arg == "all":
             save_progress()
             create_epub()
@@ -512,8 +482,8 @@ if len(sys.argv) > 1:
             create_pdf()
             create_md()
             create_doc()
-            create_docx()
             create_odt()
+            create_docx()
             word_count()
         elif arg == "ebooks":
             save_progress()
@@ -531,12 +501,12 @@ if len(sys.argv) > 1:
         elif arg == "doc":
             save_progress()
             create_doc()
-        elif arg == "docx":
-            save_progress()
-            create_docx()
         elif arg == "odt":
             save_progress()
             create_odt()
+        elif arg == "docx":
+            save_progress()
+            create_docx()
         elif arg == "md":
             save_progress()
             create_md()
