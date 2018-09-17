@@ -48,7 +48,8 @@ config = dict(
     pdfFontSize = default_pdf_font_size,
     coverImage = "",
     nanoWriMoSecretKey = "",
-    nanoWriMoUsername = ""
+    nanoWriMoUsername = "",
+    wordCountOffset = 0
 )
 
 if os.path.isfile("config.yml") == False:
@@ -64,6 +65,9 @@ if "nanoWriMoSecretKey" not in config:
 
 if "nanoWriMoUsername" not in config:
     config["nanoWriMoUsername"] = ""
+
+if "wordCountOffset" not in config:
+    config["wordCountOffset"] = 0
 
 if "pdfFontSize" not in config:
     config["pdfFontSize"] = default_pdf_font_size
@@ -103,7 +107,7 @@ def updateNaNo():
 
         manuscript_data = pre_process()
         manuscript_data = normalize_markdown( manuscript_data )
-        theword_count = len(manuscript_data.split())
+        theword_count = len(manuscript_data.split()) - config["wordCountOffset"]
 
         the_hash =  str(hashlib.sha1( str.encode(config["nanoWriMoSecretKey"] + config["nanoWriMoUsername"] + str(theword_count)) ).hexdigest() )
 
@@ -163,6 +167,38 @@ def pre_process(writeFile = False):
             working_file.write( manuscript_contents )
 
     return manuscript_contents
+
+def pre_process_chapters(writeFile = False):
+    if os.path.isdir(export_directory) == False:
+        os.mkdir( export_directory )
+    chapters_manuscript_contents = {}
+    for root, dirs, files in sorted(os.walk( manuscript_dir )):
+        path = root.split('/')
+        for file in sorted(files):
+            if file[0] != ".":
+
+                if os.path.basename(root) not in chapters_manuscript_contents:
+                    chapters_manuscript_contents[ os.path.basename(root) ] = ""
+
+                with open(manuscript_dir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
+                    # get file contents
+                    file_contents = content_file.read()
+
+                    file_contents = normalize_markdown( file_contents )
+                    # add an md HR at the end of the file
+                    chapters_manuscript_contents[ os.path.basename(root) ] += file_contents + "\n\n----\n\n"
+                # remove final "\n\n----\n\n"
+                if chapters_manuscript_contents[ os.path.basename(root) ].endswith("\n\n----\n\n"):
+                    chapters_manuscript_contents[ os.path.basename(root) ] = chapters_manuscript_contents[ os.path.basename(root) ][:-len("\n\n----\n\n")]
+                    chapters_manuscript_contents[ os.path.basename(root) ] += "\n\n"
+
+
+    # save contents
+    # if writeFile:
+    #     with open("./temp_work_file.md" , 'w', encoding="utf8") as working_file:
+    #         working_file.write( manuscript_contents )
+
+    return chapters_manuscript_contents
 
 def create_book_metadata():
     if recreate_epub_and_temp_files == True:
@@ -466,8 +502,21 @@ def create_odt():
 def word_count():
     manuscript_data = pre_process()
     manuscript_data = normalize_markdown( manuscript_data )
-    print("    Project word_count: " + str(len(manuscript_data.split())))
-    print("     Today's Progress: " + str(todays_progress) )
+
+
+    word_count =  len(manuscript_data.split()) - config["wordCountOffset"]
+    print("    Project word_count: " + str(word_count) )
+    print("     Today's Progress: " + str(todays_progress ) )
+
+def chapter_word_count():
+    chapter_data = pre_process_chapters()
+    print("  -------------- Chapter Word Counts -----------------" )
+    rpad_length = 0
+    for chapter in chapter_data.keys():
+        if len(chapter) > rpad_length:
+            rpad_length = len(chapter)
+    for chapter in chapter_data.keys():
+        print( chapter.rjust(rpad_length) + ': ' + str( len(chapter_data[chapter].split()) ) )
 
 if len(sys.argv) > 1:
     for arg in sys.argv:
@@ -525,9 +574,15 @@ if len(sys.argv) > 1:
         elif arg == "word_count":
             save_progress()
             word_count()
+            chapter_word_count()
         elif arg == "wc":
             save_progress()
             word_count()
+            chapter_word_count()
+        elif arg == "wordcount":
+            save_progress()
+            word_count()
+            chapter_word_count()
         elif arg == "nano":
             updateNaNo()
         elif arg == "nc":
@@ -546,3 +601,4 @@ if len(sys.argv) > 1:
 
 else:
     print_help()
+
