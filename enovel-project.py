@@ -154,7 +154,7 @@ def normalize_markdown( file_contents ):
 
     return file_contents
 
-def update_nano():
+def updateNaNo():
     if config["nanoWriMoSecretKey"] and config["nanoWriMoUsername"]:
 
         manuscript_data = pre_process()
@@ -413,7 +413,7 @@ def print_help():
     print("                                the config, this will attempt to update your ")
     print("                                nanowrimo daily stat automatically." )
 
-def directory_count(path):
+def directoryCount(path):
     dir_count = 0
     for root, dirs, files in os.walk(path):
         dir_count += len(dirs)
@@ -430,7 +430,7 @@ def new_chapter( chapter_number = 0 ):
         os.mkdir( "./Manuscript" )
 
     if chapter_number == 0:
-        chapter_number = directory_count( "./Manuscript" ) + 1
+        chapter_number = directoryCount( "./Manuscript" ) + 1
 
 
     if os.path.isdir("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/") == False:
@@ -563,7 +563,7 @@ def word_count():
 
 
     word_count =  len(manuscript_data.split()) - config["wordCountOffset"]
-    print("    Project word_count: " + str(word_count) )
+    print("    Project Wordcount: " + str(word_count) )
     print("     Today's Progress: " + str(todays_progress ) )
     return word_count
 
@@ -643,7 +643,7 @@ if len(sys.argv) > 1:
             word_count()
             chapter_word_count()
         elif arg == "nano":
-            update_nano()
+            updateNaNo()
         elif arg == "nc":
             new_chapter()
         elif arg == "newchapter":
