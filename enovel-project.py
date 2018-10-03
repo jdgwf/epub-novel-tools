@@ -420,7 +420,7 @@ def directoryCount(path):
 
     return dir_count
 
-def newChapter( chapter_number = 0 ):
+def new_chapter( chapter_number = 0 ):
     if chapter_number == 1:
         chapter_name = "Your first Chapter"
     else:
@@ -449,10 +449,16 @@ def newChapter( chapter_number = 0 ):
         with open("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/01 - Setting the stage.md" , 'w', encoding="utf8") as first_scene_file:
             first_scene_file.write( first_scene )
 
+    chapter_notes = "Place your chapter notes here!\n"
+
+    if os.path.isfile("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/_Chapter notes.txt") == False:
+        with open("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/_Chapter notes.txt" , 'w', encoding="utf8") as first_scene_file:
+            first_scene_file.write( chapter_notes )
+
     print("* Added new chapter directory: " + "Chapter " + str(chapter_number) + " - " + chapter_name + "")
 
 def init_project():
-    newChapter(1)
+    new_chapter(1)
 
     if os.path.isdir("./People") == False:
         os.mkdir( "./People" )
@@ -639,11 +645,11 @@ if len(sys.argv) > 1:
         elif arg == "nano":
             updateNaNo()
         elif arg == "nc":
-            newChapter()
+            new_chapter()
         elif arg == "newchapter":
-            newChapter()
+            new_chapter()
         elif arg == "chapter":
-            newChapter()
+            new_chapter()
         elif arg == "watch":
             watch()
         elif arg == __file__:
