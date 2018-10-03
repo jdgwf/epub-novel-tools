@@ -88,6 +88,58 @@ nano_api_url_current_word_count = "https://nanowrimo.org/wordcount_api/wc/" + co
 nano_api_url_current_word_count_history = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
 nano_api_url_update_word_count = "https://nanowrimo.org/api/wordcount"
 
+def watch():
+    import time
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+    global current_word_count, start_word_count
+    current_word_count = word_count()
+    start_word_count = int(current_word_count)
+    class Watcher:
+        DIRECTORY_TO_WATCH = manuscript_dir
+
+        def __init__(self):
+            self.observer = Observer()
+
+        def run(self):
+            event_handler = Handler()
+            self.observer.schedule(event_handler, self.DIRECTORY_TO_WATCH, recursive=True)
+            self.observer.start()
+            try:
+                while True:
+                    time.sleep(5)
+            except:
+                self.observer.stop()
+                # print("Error")
+
+            self.observer.join()
+
+
+    class Handler(FileSystemEventHandler):
+
+        @staticmethod
+        def on_any_event(event):
+            global current_word_count, start_word_count
+            if event.is_directory:
+                return None
+
+            elif event.event_type == 'created':
+                # Take any action here when a file is first created.
+                print("Received created event - %s." % event.src_path)
+
+            elif event.event_type == 'modified':
+                # Taken any action here when a file is modified.
+                print("Received modified event - %s." % event.src_path)
+            new_word_count = word_count()
+            print("* Words writting since start: " + str(new_word_count - start_word_count) )
+            print("* Words writting since last save: " + str(new_word_count - current_word_count) )
+            current_word_count = new_word_count
+    w = Watcher()
+    print("* Press Control-C to stop watching")
+    w.run()
+
+
+
 def normalize_markdown( file_contents ):
     # trim the contents
     file_contents = file_contents.strip()
@@ -507,6 +559,7 @@ def word_count():
     word_count =  len(manuscript_data.split()) - config["wordCountOffset"]
     print("    Project word_count: " + str(word_count) )
     print("     Today's Progress: " + str(todays_progress ) )
+    return word_count
 
 def chapter_word_count():
     chapter_data = pre_process_chapters()
@@ -591,6 +644,8 @@ if len(sys.argv) > 1:
             newChapter()
         elif arg == "chapter":
             newChapter()
+        elif arg == "watch":
+            watch()
         elif arg == __file__:
             # Do Nothing
             pass
@@ -601,4 +656,3 @@ if len(sys.argv) > 1:
 
 else:
     print_help()
-

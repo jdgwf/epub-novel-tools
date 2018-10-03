@@ -75,6 +75,16 @@ Might work.
 
 Otherwise only the TSV will be updated.
 
+# Watchdog
+For 2018's NaNoWriMo I've added a watch function which requires the installation of watchdog:
+        pip3 install matplotlib
+To invoke this functionality just run:
+        python3 enovel-project.py watch
+
+While running each time you save a file in the manuscript directory it'll display a wordcount, the difference since starting the watch function, and since the last file save.
+
+To exit just Control-C as expected to close out of a CLI app.
+
 ## Usage
 Creation of a novel is simple.
 Type:
