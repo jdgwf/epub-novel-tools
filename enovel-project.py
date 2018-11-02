@@ -227,7 +227,7 @@ def pre_process_chapters(writeFile = False):
     for root, dirs, files in sorted(os.walk( manuscript_dir )):
         path = root.split('/')
         for file in sorted(files):
-            if file[0] != ".":
+            if file.endswith(".md"):
 
                 if os.path.basename(root) not in chapters_manuscript_contents:
                     chapters_manuscript_contents[ os.path.basename(root) ] = ""
