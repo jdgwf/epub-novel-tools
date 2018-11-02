@@ -199,7 +199,7 @@ def pre_process(writeFile = False):
     for root, dirs, files in sorted(os.walk( manuscript_dir )):
         path = root.split('/')
         for file in sorted(files):
-            if file[0] != ".":
+            if file.endswith(".md"):
                 with open(manuscript_dir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
                     # get file contents
                     file_contents = content_file.read()
