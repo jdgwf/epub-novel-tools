@@ -26,7 +26,7 @@ __maintainer__ = "Jeffrey D. Gordon"
 __email__ = "jeff@jdgwf.com"
 __status__ = "Development"
 
-_debug = True
+_debug = False
 
 # Configurable Options (not really recommended)
 export_directory = "./Exports"
@@ -119,6 +119,9 @@ def watch():
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
     global current_word_count, start_word_count
+
+    save_progress()
+
     current_word_count = word_count()
     start_word_count = int(current_word_count)
     class Watcher:
