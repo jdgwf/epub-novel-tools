@@ -12,7 +12,7 @@ from shutil import copyfile
 import yaml
 import csv
 import datetime
-import imp
+import importlib
 import hashlib
 import requests
 import xmltodict
@@ -26,6 +26,7 @@ __maintainer__ = "Jeffrey D. Gordon"
 __email__ = "jeff@jdgwf.com"
 __status__ = "Development"
 
+_debug = True
 
 # Configurable Options (not really recommended)
 export_directory = "./Exports"
@@ -33,6 +34,8 @@ manuscript_dir = "./Manuscript"
 progress_directory = "./Progress"
 
 default_pdf_font_size = "12pt" # latex only supports 10pt, 11pt, and 12pt
+
+pandoc_markdown_arg = ""
 
 # Initial Config - this will create a config.yml file to modify
 todays_progress = 0
@@ -73,8 +76,8 @@ if "pdfFontSize" not in config:
     config["pdfFontSize"] = default_pdf_font_size
 
 try:
-    imp.find_module('numpy')
-    imp.find_module('matplotlib')
+    importlib.import_module('numpy')
+    importlib.import_module('matplotlib')
     found_matplotlib = True
 except ImportError:
     found_matplotlib = False
@@ -87,6 +90,29 @@ if found_matplotlib:
 nano_api_url_current_word_count = "https://nanowrimo.org/wordcount_api/wc/" + config["nanoWriMoUsername"]
 nano_api_url_current_word_count_history = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
 nano_api_url_update_word_count = "https://nanowrimo.org/api/wordcount"
+
+def _set_pandoc_args():
+    global pandoc_markdown_arg
+
+    if pandoc_markdown_arg == "":
+        # For pandoc 2+
+        # pandoc_markdown_arg = "-f markdown+smart"
+
+        # For pandoc 1.19.2.4
+        # pandoc_markdown_arg = "-S"
+
+        version_return = os.popen("pandoc --version").read()
+        # print("v", version_return)
+        version_return_lines = version_return.split("\n")
+        if version_return_lines[0].find("pandoc 1.1") == 0:
+            pandoc_markdown_arg = "-S"
+            if _debug:
+                print( "* Detected " + version_return_lines[0] + ". Setting markdown arg to '" + pandoc_markdown_arg + "'")
+
+        if version_return_lines[0].find("pandoc 2.") == 0:
+            pandoc_markdown_arg = "-f markdown+smart"
+            if _debug:
+                print( "* Detected " + version_return_lines[0] + ". Setting markdown arg to ''" + pandoc_markdown_arg + "'")
 
 def watch():
     import time
@@ -281,6 +307,8 @@ def remove_temp_files():
 
 def save_progress():
     global todays_progress
+    _set_pandoc_args()
+
     if os.path.isdir( progress_directory ) == False:
         os.mkdir( progress_directory )
     manuscript_data = pre_process()
@@ -488,7 +516,7 @@ def create_epub():
     if os.path.isfile('./" + export_directory + "/" + config["bookFile"] + ".epub') == False and recreate_epub_and_temp_files == True:
         create_book_metadata()
         pre_process( writeFile = True )
-        os.system("pandoc -S -o \"" + export_directory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+        os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
         recreate_epub_and_temp_files = False
         print("* " + export_directory + "/" + config["bookFile"] + ".epub created")
 
@@ -501,7 +529,7 @@ def create_html():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".html created")
 
 
@@ -531,29 +559,29 @@ def create_pdf():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".pdf created")
 
 def create_doc():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".doc created")
 
 def create_docx():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
 
 def create_odt():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".odt created")
 
 
