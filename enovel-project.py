@@ -154,12 +154,15 @@ def watch():
 
             elif event.event_type == 'created':
                 # Take any action here when a file is first created.
-                print("Received created event - %s." % event.src_path)
+                print("---------- Watch Event @ " + datetime.datetime.now().strftime("%H:%M:%S") + " ----------------")
+                print("* Received created event - %s." % event.src_path)
 
             elif event.event_type == 'modified':
                 # Taken any action here when a file is modified.
-                print("Received modified event - %s." % event.src_path)
+                print("---------- Watch Event @ " + datetime.datetime.now().strftime("%H:%M:%S") + " ----------------")
+                print("* Received modified event - %s." % event.src_path)
             new_word_count = word_count()
+            save_progress(True)
             print("* Words writting since start: " + str(new_word_count - start_word_count) )
             print("* Words writting since last save: " + str(new_word_count - current_word_count) )
             current_word_count = new_word_count
@@ -308,7 +311,7 @@ def remove_temp_files():
 
 
 
-def save_progress():
+def save_progress( dont_draw_graphs = False):
     global todays_progress
     _set_pandoc_args()
 
@@ -337,7 +340,7 @@ def save_progress():
         for entryDate in sorted(word_count_dict.keys()):
             content_file.write( str(entryDate) + "\t" + str(word_count_dict[entryDate]) + "\n")
 
-    if found_matplotlib:
+    if found_matplotlib and dont_draw_graphs == False:
 
         #Create Overall Progress Graph
         graphX = []
