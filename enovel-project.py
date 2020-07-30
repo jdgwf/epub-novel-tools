@@ -12,7 +12,7 @@ from shutil import copyfile
 import yaml
 import csv
 import datetime
-import imp
+import importlib
 import hashlib
 import requests
 import xmltodict
@@ -21,7 +21,7 @@ __author__ = "Jeffrey D. Gordon"
 __copyright__ = "Copyright 2016-2017, Jeffrey D. Gordon"
 __credits__ = ["Jeffrey D. Gordon"]
 __license__ = "GPL"
-__version__ = "0.8.5"
+__version__ = "0.9.5"
 __maintainer__ = "Jeffrey D. Gordon"
 __email__ = "jeff@jdgwf.com"
 __status__ = "Development"
@@ -73,8 +73,8 @@ if "pdfFontSize" not in config:
     config["pdfFontSize"] = default_pdf_font_size
 
 try:
-    imp.find_module('numpy')
-    imp.find_module('matplotlib')
+    importlib.util.find_spec('numpy')
+    importlib.util.find_spec('matplotlib')
     found_matplotlib = True
 except ImportError:
     found_matplotlib = False
@@ -87,6 +87,58 @@ if found_matplotlib:
 nano_api_url_current_word_count = "https://nanowrimo.org/wordcount_api/wc/" + config["nanoWriMoUsername"]
 nano_api_url_current_word_count_history = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
 nano_api_url_update_word_count = "https://nanowrimo.org/api/wordcount"
+
+def watch():
+    import time
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+    global current_word_count, start_word_count
+    current_word_count = word_count()
+    start_word_count = int(current_word_count)
+    class Watcher:
+        DIRECTORY_TO_WATCH = manuscript_dir
+
+        def __init__(self):
+            self.observer = Observer()
+
+        def run(self):
+            event_handler = Handler()
+            self.observer.schedule(event_handler, self.DIRECTORY_TO_WATCH, recursive=True)
+            self.observer.start()
+            try:
+                while True:
+                    time.sleep(5)
+            except:
+                self.observer.stop()
+                # print("Error")
+
+            self.observer.join()
+
+
+    class Handler(FileSystemEventHandler):
+
+        @staticmethod
+        def on_any_event(event):
+            global current_word_count, start_word_count
+            if event.is_directory:
+                return None
+
+            elif event.event_type == 'created':
+                # Take any action here when a file is first created.
+                print("Received created event - %s." % event.src_path)
+
+            elif event.event_type == 'modified':
+                # Taken any action here when a file is modified.
+                print("Received modified event - %s." % event.src_path)
+            new_word_count = word_count()
+            print("* Words writting since start: " + str(new_word_count - start_word_count) )
+            print("* Words writting since last save: " + str(new_word_count - current_word_count) )
+            current_word_count = new_word_count
+    w = Watcher()
+    print("* Press Control-C to stop watching")
+    w.run()
+
+
 
 def normalize_markdown( file_contents ):
     # trim the contents
@@ -147,7 +199,7 @@ def pre_process(writeFile = False):
     for root, dirs, files in sorted(os.walk( manuscript_dir )):
         path = root.split('/')
         for file in sorted(files):
-            if file[0] != ".":
+            if file.endswith(".md"):
                 with open(manuscript_dir + "/" + os.path.basename(root) + "/" + file , 'r', encoding="utf8") as content_file:
                     # get file contents
                     file_contents = content_file.read()
@@ -175,7 +227,7 @@ def pre_process_chapters(writeFile = False):
     for root, dirs, files in sorted(os.walk( manuscript_dir )):
         path = root.split('/')
         for file in sorted(files):
-            if file[0] != ".":
+            if file.endswith(".md"):
 
                 if os.path.basename(root) not in chapters_manuscript_contents:
                     chapters_manuscript_contents[ os.path.basename(root) ] = ""
@@ -368,7 +420,7 @@ def directoryCount(path):
 
     return dir_count
 
-def newChapter( chapter_number = 0 ):
+def new_chapter( chapter_number = 0 ):
     if chapter_number == 1:
         chapter_name = "Your first Chapter"
     else:
@@ -397,10 +449,16 @@ def newChapter( chapter_number = 0 ):
         with open("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/01 - Setting the stage.md" , 'w', encoding="utf8") as first_scene_file:
             first_scene_file.write( first_scene )
 
+    chapter_notes = "Place your chapter notes here!\n"
+
+    if os.path.isfile("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/_Chapter notes.txt") == False:
+        with open("./Manuscript/Chapter " + str(chapter_number) + " - " + chapter_name + "/_Chapter notes.txt" , 'w', encoding="utf8") as first_scene_file:
+            first_scene_file.write( chapter_notes )
+
     print("* Added new chapter directory: " + "Chapter " + str(chapter_number) + " - " + chapter_name + "")
 
 def init_project():
-    newChapter(1)
+    new_chapter(1)
 
     if os.path.isdir("./People") == False:
         os.mkdir( "./People" )
@@ -430,7 +488,7 @@ def create_epub():
     if os.path.isfile('./" + export_directory + "/" + config["bookFile"] + ".epub') == False and recreate_epub_and_temp_files == True:
         create_book_metadata()
         pre_process( writeFile = True )
-        os.system("pandoc -S -o \"" + export_directory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+        os.system("pandoc -o \"" + export_directory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
         recreate_epub_and_temp_files = False
         print("* " + export_directory + "/" + config["bookFile"] + ".epub created")
 
@@ -443,7 +501,7 @@ def create_html():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".html created")
 
 
@@ -473,29 +531,29 @@ def create_pdf():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " -S -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".pdf created")
 
-def create_doc():
-    #Requires SYSCALL to pandoc
-    create_book_metadata()
-    pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-    print("* " + export_directory + "/" + config["bookFile"] + ".doc created")
+# def create_doc():
+#     #Requires SYSCALL to pandoc
+#     create_book_metadata()
+#     pre_process( writeFile = True )
+#     os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+#     print("* " + export_directory + "/" + config["bookFile"] + ".doc created")
 
 def create_docx():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
 
 def create_odt():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -S -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".odt created")
 
 
@@ -505,8 +563,9 @@ def word_count():
 
 
     word_count =  len(manuscript_data.split()) - config["wordCountOffset"]
-    print("    Project word_count: " + str(word_count) )
+    print("    Project Wordcount: " + str(word_count) )
     print("     Today's Progress: " + str(todays_progress ) )
+    return word_count
 
 def chapter_word_count():
     chapter_data = pre_process_chapters()
@@ -530,7 +589,7 @@ if len(sys.argv) > 1:
             create_txt()
             create_pdf()
             create_md()
-            create_doc()
+            # create_doc()
             create_odt()
             create_docx()
             word_count()
@@ -547,9 +606,9 @@ if len(sys.argv) > 1:
         elif arg == "pdf":
             save_progress()
             create_pdf()
-        elif arg == "doc":
-            save_progress()
-            create_doc()
+        # elif arg == "doc":
+        #     save_progress()
+        #     create_doc()
         elif arg == "odt":
             save_progress()
             create_odt()
@@ -586,11 +645,13 @@ if len(sys.argv) > 1:
         elif arg == "nano":
             updateNaNo()
         elif arg == "nc":
-            newChapter()
+            new_chapter()
         elif arg == "newchapter":
-            newChapter()
+            new_chapter()
         elif arg == "chapter":
-            newChapter()
+            new_chapter()
+        elif arg == "watch":
+            watch()
         elif arg == __file__:
             # Do Nothing
             pass
@@ -601,4 +662,3 @@ if len(sys.argv) > 1:
 
 else:
     print_help()
-

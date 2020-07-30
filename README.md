@@ -15,32 +15,41 @@ Reference: <https://github.com/Microsoft/BashOnWindows/issues/307>
 ## Requirements
 This software uses python3, calibre, and pandoc..
 
-### Ubuntu 16.04 && 16.10 (Tested and Verified)
+### Ubuntu 18.04 & 18.10
 You can install the requirements for this app with the following command (install size: ~223mb, this does include the full calibre e-book reader for your convienience):
 
-    sudo apt-get install -y pandoc calibre calibre-bin python3-yaml
+    sudo apt-get install -y pandoc calibre calibre-bin python3-yaml python3-pip python3-tk python3-numpy python3-matplotlib python3-watchdog python3-requests python3-watchdog python3-pretty-yaml
 
 If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~282mb):
 
     sudo apt-get install -y texlive-latex-base texlive-fonts-recommended
 
-*I have not tested this with Ubuntu 14.\* or 15.\* as I don't use anything older than the latest LTS on my desktop (#sorrynotsorry). I'm sure that python3 will at least have to be installed.*
+I've found the following necessary on Ubuntu 20.04:
+    sudo apt-get install -y texlive-latex-recommended texlive-latex-extra
 
-# Fedora 25
-You can install the requirements for this app with the following command (install size: ~365mb, this does include the full calibre e-book reader for your convienience):
 
-    sudo yum -y install -y pandoc calibre python3-yaml
+Once all that's done, just install the python requirements:
+    pip3 install -r requirements.txt
+Optionally, you can install these globally:
+    sudo pip3 install -r requirements.txt
+
+
+# Fedora 29
+You can install the requirements for this app with the following command (install size: ~435mb, this does include the full calibre e-book reader for your convienience):
+
+    sudo dnf -y install pandoc calibre python3-yaml freetype-devel python3-numpy python3-matplotlib python3-watchdog python3-pyyaml python3-requests python3-watchdog
 
 If want to create pdfs then you'll need to install the latex pdf libraries (install size: ~255mb):
 
-    sudo yum -y install texlive
+    sudo dnf -y install texlive
 
-This should work in CentOS 7, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
+
+This might work in CentOS 7+, but pandoc and calibre aren't in the standard repositpories and you'll have to install them manually or add the Fedora repos
 
 # Windows (Native, tested in Windows 10)
 Install Python 3 for Windows (don't forget to add the 'add python to path variable' in the install options ) <https://www.python.org/downloads/windows/>
 
-Install tye pyyaml package via pip (needed for reading config files)
+Install the pyyaml package via pip (needed for reading config files)
 
 Install pandoc for Windows including the suggested MiKTeX package <http://www.pandoc.org/installing.html>
 
@@ -63,17 +72,16 @@ Again, this is a fairly large library and you may not need it
 **Note:** You'll have to restart your shell for pdflatex to show up for some reason I don't want to research.
 
 # Progress Tracking
-I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time any progress is saved. Additionally, if the python3-matplotlib library is installed it'll create a PNG graph of your progress. You can install it by typing:
+I've added functionality which will track your word count progress per day. A ./Progress directory will be created which will update the progress.tsv every time any progress is saved. Additionally, it'll create a PNG graph of your progress.
 
-    sudo apt-get install python3-matplotlib
 
-If not in Ubuntu:
+# Watchdog
+For 2018's NaNoWriMo I've added a watch function. To invoke this functionality just run:
+        python3 enovel-project.py watch
 
-    pip3 install matplotlib
+While running each time you save a file in the manuscript directory it'll display a wordcount, the difference since starting the watch function, and since the last file save.
 
-Might work.
-
-Otherwise only the TSV will be updated.
+To exit just Control-C as expected to close out of a CLI app.
 
 ## Usage
 Creation of a novel is simple.
