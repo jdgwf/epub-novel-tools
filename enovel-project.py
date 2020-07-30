@@ -26,6 +26,7 @@ __maintainer__ = "Jeffrey D. Gordon"
 __email__ = "jeff@jdgwf.com"
 __status__ = "Development"
 
+_debug = False
 
 # Configurable Options (not really recommended)
 export_directory = "./Exports"
@@ -33,6 +34,8 @@ manuscript_dir = "./Manuscript"
 progress_directory = "./Progress"
 
 default_pdf_font_size = "12pt" # latex only supports 10pt, 11pt, and 12pt
+
+pandoc_markdown_arg = ""
 
 # Initial Config - this will create a config.yml file to modify
 todays_progress = 0
@@ -75,6 +78,7 @@ if "pdfFontSize" not in config:
 try:
     importlib.util.find_spec('numpy')
     importlib.util.find_spec('matplotlib')
+
     found_matplotlib = True
 except ImportError:
     found_matplotlib = False
@@ -88,11 +92,39 @@ nano_api_url_current_word_count = "https://nanowrimo.org/wordcount_api/wc/" + co
 nano_api_url_current_word_count_history = "https://nanowrimo.org/modules/wordcount_api/wchistory/" + config["nanoWriMoUsername"]
 nano_api_url_update_word_count = "https://nanowrimo.org/api/wordcount"
 
+def _set_pandoc_args():
+    global pandoc_markdown_arg
+
+    if pandoc_markdown_arg == "":
+        # For pandoc 2+
+        # pandoc_markdown_arg = "-f markdown+smart"
+
+        # For pandoc 1.19.2.4
+        # pandoc_markdown_arg = "-S"
+
+        version_return = os.popen("pandoc --version").read()
+        # print("v", version_return)
+        version_return_lines = version_return.split("\n")
+        if version_return_lines[0].find("pandoc 1.1") == 0:
+            pandoc_markdown_arg = "-S"
+            if _debug:
+                print( "* Detected " + version_return_lines[0] + ". Setting markdown arg to '" + pandoc_markdown_arg + "'")
+
+        if version_return_lines[0].find("pandoc 2.") == 0:
+            pandoc_markdown_arg = "-f markdown+smart"
+            if _debug:
+                print( "* Detected " + version_return_lines[0] + ". Setting markdown arg to ''" + pandoc_markdown_arg + "'")
+
+
 def watch():
     import time
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
     global current_word_count, start_word_count
+
+
+    save_progress()
+
     current_word_count = word_count()
     start_word_count = int(current_word_count)
     class Watcher:
@@ -125,12 +157,17 @@ def watch():
 
             elif event.event_type == 'created':
                 # Take any action here when a file is first created.
-                print("Received created event - %s." % event.src_path)
+
+                print("---------- Watch Event @ " + datetime.datetime.now().strftime("%H:%M:%S") + " ----------------")
+                print("* Received created event - %s." % event.src_path)
 
             elif event.event_type == 'modified':
                 # Taken any action here when a file is modified.
-                print("Received modified event - %s." % event.src_path)
+                print("---------- Watch Event @ " + datetime.datetime.now().strftime("%H:%M:%S") + " ----------------")
+                print("* Received modified event - %s." % event.src_path)
             new_word_count = word_count()
+            save_progress(True)
+
             print("* Words writting since start: " + str(new_word_count - start_word_count) )
             print("* Words writting since last save: " + str(new_word_count - current_word_count) )
             current_word_count = new_word_count
@@ -279,8 +316,10 @@ def remove_temp_files():
 
 
 
-def save_progress():
+def save_progress( dont_draw_graphs = False):
     global todays_progress
+    _set_pandoc_args()
+
     if os.path.isdir( progress_directory ) == False:
         os.mkdir( progress_directory )
     manuscript_data = pre_process()
@@ -306,7 +345,7 @@ def save_progress():
         for entryDate in sorted(word_count_dict.keys()):
             content_file.write( str(entryDate) + "\t" + str(word_count_dict[entryDate]) + "\n")
 
-    if found_matplotlib:
+    if found_matplotlib and dont_draw_graphs == False:
 
         #Create Overall Progress Graph
         graphX = []
@@ -488,7 +527,9 @@ def create_epub():
     if os.path.isfile('./" + export_directory + "/" + config["bookFile"] + ".epub') == False and recreate_epub_and_temp_files == True:
         create_book_metadata()
         pre_process( writeFile = True )
-        os.system("pandoc -o \"" + export_directory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
+        os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".epub\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
         recreate_epub_and_temp_files = False
         print("* " + export_directory + "/" + config["bookFile"] + ".epub created")
 
@@ -501,7 +542,9 @@ def create_html():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".html\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
     print("* " + export_directory + "/" + config["bookFile"] + ".html created")
 
 
@@ -531,29 +574,32 @@ def create_pdf():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
+    os.system("pandoc -V fontsize=" + config["pdfFontSize"] + " " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    # print("pandoc -V fontsize=" + config["pdfFontSize"] + " " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".pdf created")
 
-# def create_doc():
-#     #Requires SYSCALL to pandoc
-#     create_book_metadata()
-#     pre_process( writeFile = True )
-#     os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
-#     print("* " + export_directory + "/" + config["bookFile"] + ".doc created")
+def create_doc():
+    #Requires SYSCALL to pandoc
+    create_book_metadata()
+    pre_process( writeFile = True )
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+    print("* " + export_directory + "/" + config["bookFile"] + ".doc created")
 
 def create_docx():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
     os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
 
 def create_odt():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
-    os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
+
+    os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".odt\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".odt created")
 
 

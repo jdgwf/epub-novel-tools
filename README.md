@@ -27,12 +27,10 @@ If want to create pdfs then you'll need to install the latex pdf libraries (inst
 I've found the following necessary on Ubuntu 20.04:
     sudo apt-get install -y texlive-latex-recommended texlive-latex-extra
 
-
 Once all that's done, just install the python requirements:
     pip3 install -r requirements.txt
 Optionally, you can install these globally:
     sudo pip3 install -r requirements.txt
-
 
 # Fedora 29
 You can install the requirements for this app with the following command (install size: ~435mb, this does include the full calibre e-book reader for your convienience):
