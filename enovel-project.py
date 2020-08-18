@@ -3,6 +3,8 @@
 """Sets up a series of directories and MarkDown compilation tools for Novel E-Book novel
 creation on Linux (tested on Ubuntu 16.04 and 16.10, should work on and Debian too).
 Provides word count functions and history tracking.
+
+Find this at: https://github.com/jdgwf/epub-novel-tools
 """
 
 import os
@@ -52,7 +54,8 @@ config = dict(
     coverImage = "",
     nanoWriMoSecretKey = "",
     nanoWriMoUsername = "",
-    wordCountOffset = 0
+    wordCountOffset = 0,
+    replacements = {},
 )
 
 if os.path.isfile("config.yml") == False:
@@ -176,8 +179,18 @@ def watch():
     w.run()
 
 
+def apply_replacements( file_contents ):
+    if config["replacements"]:
+        for replace_value in config["replacements"]:
+            replace_with = config["replacements"][replace_value]
+            file_contents = file_contents.replace( replace_value, replace_with )
+    return file_contents
+
 
 def normalize_markdown( file_contents ):
+
+    file_contents = apply_replacements( file_contents)
+
     # trim the contents
     file_contents = file_contents.strip()
     # remove existing markdown HRs
@@ -568,8 +581,6 @@ def create_md():
         recreate_epub_and_temp_files = False
 
 
-
-
 def create_pdf():
     #Requires SYSCALL to pandoc
     create_book_metadata()
@@ -579,12 +590,14 @@ def create_pdf():
     # print("pandoc -V fontsize=" + config["pdfFontSize"] + " " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".pdf\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".pdf created")
 
+
 def create_doc():
     #Requires SYSCALL to pandoc
     create_book_metadata()
     pre_process( writeFile = True )
     os.system("pandoc " + pandoc_markdown_arg + " -o \"" + export_directory + "/" + config["bookFile"] + ".doc\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
     print("* " + export_directory + "/" + config["bookFile"] + ".doc created")
+
 
 def create_docx():
     #Requires SYSCALL to pandoc
@@ -593,6 +606,7 @@ def create_docx():
     os.system("pandoc -s -o \"" + export_directory + "/" + config["bookFile"] + ".docx\" \"00-ebook-info.txt\" \"temp_work_file.md\"")
 
     print("* " + export_directory + "/" + config["bookFile"] + ".docx created")
+
 
 def create_odt():
     #Requires SYSCALL to pandoc
@@ -613,6 +627,7 @@ def word_count():
     print("     Today's Progress: " + str(todays_progress ) )
     return word_count
 
+
 def chapter_word_count():
     chapter_data = pre_process_chapters()
     print("  -------------- Chapter Word Counts -----------------" )
@@ -622,6 +637,7 @@ def chapter_word_count():
             rpad_length = len(chapter)
     for chapter in chapter_data.keys():
         print( chapter.rjust(rpad_length) + ': ' + str( len(chapter_data[chapter].split()) ) )
+
 
 if len(sys.argv) > 1:
     for arg in sys.argv:
