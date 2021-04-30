@@ -11,6 +11,6 @@ python-dateutil==2.8.0
 PyYAML==5.1.1
 requests==2.22.0
 six==1.12.0
-urllib3==1.25.3
+urllib3==1.25.8
 xmltodict==0.12.0
 importlib==3.1.0
